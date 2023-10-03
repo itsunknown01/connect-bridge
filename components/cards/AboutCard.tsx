@@ -25,7 +25,7 @@ const AboutCard = ({
         <h2 className=" text-[1.2rem] md:text-[3rem] font-extrabold leading-[120%]">
           {title}
         </h2>
-        <p className="mt-6 text-[2rem] leading-[1.625] flex md:items-center md:justify-center">
+        <p className="mt-6 text-[1rem] md:text-[2rem] leading-[1.625] flex md:items-center md:justify-center">
           {content}
         </p>
       </div>
