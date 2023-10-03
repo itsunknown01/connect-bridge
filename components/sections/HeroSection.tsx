@@ -3,15 +3,8 @@ import Header from "../layouts/Header";
 
 const HeroSection = () => {
   return (
-    <section className="bg-[#404eed] relative min-h-[38.5rem] overflow-hidden pb-0 w-full flex items-center flex-col">
+    <section className="bg-[#404eed] min-h-[626px] w-full box-border flex items-center overflow-hidden flex-col">
       <Header />
-      <Image
-        src="/background.svg"
-        width={2560}
-        height={626}
-        alt="background"
-        className="absolute bottom-0"
-      />
     </section>
   );
 };
