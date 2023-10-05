@@ -2,6 +2,7 @@ import { aboutData } from "@/lib/constants";
 import Image from "next/image";
 import Link from "next/link";
 import AboutCard from "../cards/AboutCard";
+import Footer from "../layouts/Footer";
 
 const AboutSection = () => {
   return (
@@ -40,7 +41,7 @@ const AboutSection = () => {
       </div>
 
       <div className="w-full bg-[#f6f6f6] flex items-center flex-col">
-        <div className="mb-[120px] flex justify-center flex-col items-center flex-wrap relative box-border gap-y-5 px-5">
+        <div className="mb-24 flex justify-center flex-col items-center flex-wrap relative box-border gap-y-5 px-5">
           <div className="flex justify-center absolute top-0 w-full overflow-hidden">
             <Image
               src="/sparkles.svg"
@@ -62,9 +63,6 @@ const AboutSection = () => {
           </Link>
         </div>
       </div>
-
-      
-
     </section>
   );
 };
