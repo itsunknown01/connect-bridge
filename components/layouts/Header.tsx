@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import MobileToggle from "../Feature/MobileToggle";
+import MobileToggle from "../Feature/mobile-toggle";
 import { Button } from "../ui/button";
 import Navbar from "./Navbar";
 
