@@ -39,23 +39,23 @@ export const aboutData = [
 export const socialLinks = [
   {
     name: "Twitter",
-    url: "",
+    url: "/",
     icon: React.createElement(Twitter, {color: "white"}),
   },
   {
     name: "Facebook",
     icon: React.createElement(Facebook, {color: "white"}),
-    url: "",
+    url: "/",
   },
   {
     name: "Instagram",
     icon: React.createElement(Instagram, {color: "white"}),
-    url: "",
+    url: "/",
   },
   {
     name: "YouTube",
     icon: React.createElement(Youtube, {color: "white"}),
-    url: "",
+    url: "/",
   },
 ];
 

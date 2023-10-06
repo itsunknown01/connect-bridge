@@ -18,7 +18,7 @@ const AboutCard = ({
 }: AboutCardProps) => {
   return (
     <div
-      className={`w-full flex flex-col md:flex-row items-center justify-center md:gap-20 box-border py-7 px-6 ${backgroundStyle} md:${rowStyle} md:py-14`}
+      className={`w-full flex flex-col md:flex-row items-center justify-center md:gap-20 box-border py-7 px-6 ${backgroundStyle} md:${rowStyle} md:py-16`}
     >
       <Image src={imageUrl} width={678} height={440} alt="about-image-1" />
       <div className="flex flex-col justify-center pt-4 text-[#23272a] md:w-[720px]">

@@ -5,7 +5,7 @@ import { Button } from "../ui/button";
 
 const HeroSection = () => {
   return (
-    <section className="bg-[#404eed] min-h-[626px] w-full box-border flex md:items-center overflow-hidden flex-col">
+    <section className="bg-[#404eed] relative min-h-[626px] w-full box-border flex md:items-center overflow-hidden flex-col">
       <Header />
 
       <div className="flex items-center justify-center md:w-[720px] box-border gap-x-5 py-14 px-6 z-50">
@@ -57,7 +57,7 @@ const HeroSection = () => {
         width={2056}
         height={626}
         alt="background"
-        className="absolute top-11 hidden md:block"
+        className="absolute bottom-0 hidden md:block"
       />
     </section>
   );

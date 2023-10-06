@@ -30,7 +30,7 @@ const Header = () => {
             onClick={() => router.push("/sign-in")}
             className="inline-flex leading-6 font-medium items-center whitespace-nowrap rounded-[40px] text-sm px-4 py-[7px] bg-white text-black hover:bg-white"
           >
-            Open Dicord
+            Login
           </Button>
           <MobileToggle className="md:hidden" />
         </div>

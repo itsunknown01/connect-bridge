@@ -27,7 +27,7 @@ const Footer = () => {
           <div key={section.title} className="flex-2 w-1/2 md:w-auto mb-10 text-white">
             <h5 className="text-[#5865f2] text-base mb-2.5">{section.title}</h5>
             {section.content.map((link,index) => (
-              <Link key={index} href={""} className="flex flex-col gap-y-10">
+              <Link key={index} href={"/"} className="flex flex-col gap-y-10">
                 {link.link}
               </Link>
             ))}
