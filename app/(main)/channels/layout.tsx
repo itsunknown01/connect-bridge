@@ -1,4 +1,4 @@
-import NavigationSidebar from "@/components/Navigation/NavigationSidebar";
+import NavigationSidebar from "@/components/Navigation/navigation-sidebar";
 import React from "react";
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {

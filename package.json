@@ -11,7 +11,9 @@
   "dependencies": {
     "@clerk/nextjs": "^4.25.2",
     "@kinde-oss/kinde-auth-nextjs": "^1.8.22",
+    "@prisma/client": "^5.4.1",
     "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-scroll-area": "^1.0.5",
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-separator": "^1.0.3",
     "@radix-ui/react-slot": "^1.0.2",
@@ -34,6 +36,7 @@
     "eslint": "latest",
     "eslint-config-next": "latest",
     "postcss": "latest",
+    "prisma": "^5.4.1",
     "tailwindcss": "latest",
     "typescript": "latest"
   }
