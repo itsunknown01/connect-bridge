@@ -75,6 +75,7 @@ enum ChannelYpe {
 
 model Channel {
   id String @id @default(uuid())
+  name String
   type ChannelYpe @default(TEXT)
   
   profileId String
