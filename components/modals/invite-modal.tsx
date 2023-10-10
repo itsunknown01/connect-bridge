@@ -3,7 +3,7 @@
 import axios from "axios";
 import { useState } from "react";
 
-import { useModal } from "@/hooks/use-modal";
+import { useModal } from "@/hooks/use-modal-store";
 import { useOrigin } from "@/hooks/use-origin";
 import { Check, Copy, RefreshCw } from "lucide-react";
 import { Button } from "../ui/button";

@@ -6,9 +6,9 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-import { useModal } from "@/hooks/use-modal";
+import { useModal } from "@/hooks/use-modal-store";
 import { useRouter } from "next/navigation";
-import { FileUpload } from "../Feature/FileUpload";
+import { FileUpload } from "../Feature/file-upload";
 import { Button } from "../ui/button";
 import {
     Dialog,
