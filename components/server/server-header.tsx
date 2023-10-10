@@ -1,6 +1,6 @@
 "use client";
 
-import { useModal } from "@/hooks/use-modal";
+import { useModal } from "@/hooks/use-modal-store";
 import { MemberRole, Server } from "@prisma/client";
 import React from "react";
 import {
@@ -59,7 +59,9 @@ const ServerHeader = ({ server, role }: ServerHeaderProps) => {
           </DropdownMenuItem>
         )}
         {isAdmin && (
-          <DropdownMenuItem className="px-3 py-2 text-sm cursor-pointer">
+          <DropdownMenuItem 
+          onClick={() => onOpen("members", {server})}
+          className="px-3 py-2 text-sm cursor-pointer">
             Manage Members
             <Users className="h-4 w-4 ml-auto" />
           </DropdownMenuItem>
