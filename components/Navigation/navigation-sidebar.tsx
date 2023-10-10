@@ -38,7 +38,6 @@ const NavigationSidebar = async () => {
             </div>
           ))}
         </div>
-        
         <NavigationAction />
       </ScrollArea>
 

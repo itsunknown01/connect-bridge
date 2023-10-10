@@ -20,7 +20,7 @@ const InviteModal = () => {
 
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const inviteUrl = `${origin}/invite/${server?.inviteCode}`;
+  const inviteUrl = `${origin}/${server?.inviteCode}`;
 
   const onCopy = () => {
     navigator.clipboard.writeText(inviteUrl);
@@ -34,7 +34,7 @@ const InviteModal = () => {
   const onNew = async () => {
     try {
       setIsLoading(true)
-      const res = await axios.patch(`/api/servers/${server?.id}/invite-code`)
+      const res = await axios.patch(`/api/channels/${server?.id}/invite-code`)
 
       onOpen("invite", { server: res.data})
     } catch (error) {
