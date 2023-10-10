@@ -15,10 +15,10 @@ const SetupPage = async () => {
     }
   })
 
-  if (!profile) {
-    return null
+  if (server) {
+    return redirect(`/channels/${server?.id}`)
   }
-  return redirect(`/channels/${server?.id}`)
+  return null
 }
 
 export default SetupPage
