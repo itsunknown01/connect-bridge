@@ -54,7 +54,7 @@ const inviteCodePage = async ({
     })
 
     if (server) {
-        return redirect(`/dashboard/servers/${server.id}`)
+        return redirect(`/channels/${server.id}`)
     }
 
     return null
