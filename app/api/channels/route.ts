@@ -1,8 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
+import { NextResponse } from "next/server";
+import { MemberRole } from "@prisma/client";
+
 import { db } from "@/lib/db";
 import { userProfile } from "@/lib/user-profile";
-import { MemberRole } from "@prisma/client";
-import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
@@ -10,7 +11,7 @@ export async function POST(req: Request) {
     const profile = await userProfile();
 
     if (!profile) {
-      return new NextResponse("Unauthorizerd", { status: 401 });
+      return new NextResponse("Unauthorized", { status: 401 });
     }
 
     const server = await db.server.create({
@@ -21,21 +22,15 @@ export async function POST(req: Request) {
         inviteCode: uuidv4(),
         channels: {
           create: [
-            {
-              name: "general",
-              profileId: profile.id,
-            },
-          ],
+            { name: "general", profileId: profile.id }
+          ]
         },
         members: {
           create: [
-            {
-              profileId: profile.id,
-              role: MemberRole.ADMIN,
-            },
-          ],
-        },
-      },
+            { profileId: profile.id, role: MemberRole.ADMIN }
+          ]
+        }
+      }
     });
 
     return NextResponse.json(server);
