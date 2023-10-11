@@ -67,7 +67,7 @@ model Member {
   @@index([serverId])
 }
 
-enum ChannelYpe {
+enum ChannelType {
   TEXT
   AUDIO
   VIDEO
@@ -76,7 +76,7 @@ enum ChannelYpe {
 model Channel {
   id String @id @default(uuid())
   name String
-  type ChannelYpe @default(TEXT)
+  type ChannelType @default(TEXT)
   
   profileId String
   profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
