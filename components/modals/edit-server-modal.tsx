@@ -8,7 +8,7 @@ import * as z from "zod";
 
 import { useModal } from "@/hooks/use-modal-store";
 import { useRouter } from "next/navigation";
-import { FileUpload } from "../Feature/file-upload";
+import { FileUpload } from "../feature/file-upload";
 import { Button } from "../ui/button";
 import {
     Dialog,

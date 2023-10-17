@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react";
-import ActionTooltip from "../Feature/action-tooltip";
+import ActionTooltip from "../feature/action-tooltip";
 import { BsDiscord } from "react-icons/bs";
 import { useRouter } from "next/navigation";
 

@@ -38,7 +38,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { ScrollArea } from "../ui/scroll-area";
-import UserAvatar from "../Feature/user-avatar";
+import UserAvatar from "../feature/user-avatar";
 
 const roleIconMap = {
   GUEST: null,

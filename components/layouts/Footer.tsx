@@ -3,7 +3,7 @@
 import { footerSectionsData, socialLinks } from "@/lib/constants";
 import Image from "next/image";
 import Link from "next/link";
-import LanguageMenu from "../Feature/language-menu";
+import LanguageMenu from "../feature/language-menu";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 

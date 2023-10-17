@@ -1,4 +1,4 @@
-import NavigationSidebar from "@/components/Navigation/navigation-sidebar";
+import NavigationSidebar from "@/components/navigation/navigation-sidebar";
 import React from "react";
 
 const ChannelLayout = async ({ children }: { children: React.ReactNode }) => {
