@@ -48,6 +48,10 @@ const ServerSidebar = async ({ serverId }: ServerSidebarProps) => {
     (channel) => channel.type === ChannelType.AUDIO
   );
 
+  const videoChannels = server?.channels.filter(
+    (channel) => channel.type === ChannelType.VIDEO
+  );
+
   if (!server) {
     redirect(`/channels`);
   }
@@ -63,10 +67,10 @@ const ServerSidebar = async ({ serverId }: ServerSidebarProps) => {
         {!!textChannels?.length && (
           <div className="mt-2">
             <ServerSection
-             sectionType="channels"
-             channelType={ChannelType.TEXT}
-             role={handleRole}
-             label="Text Channels"
+              sectionType="channels"
+              channelType={ChannelType.TEXT}
+              role={handleRole}
+              label="Text Channels"
             />
             <div className="space-y-[2px]">
               {textChannels.map((channel) => (
@@ -75,7 +79,48 @@ const ServerSidebar = async ({ serverId }: ServerSidebarProps) => {
                   channel={channel}
                   server={server}
                   role={handleRole}
-                  />
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        {!!voiceChannels?.length && (
+          <div className="mt-2">
+            <ServerSection
+              sectionType="channels"
+              channelType={ChannelType.AUDIO}
+              role={handleRole}
+              label="Voice Channels"
+            />
+            <div className="space-y-[2px]">
+              {voiceChannels?.map((channel) => (
+                <ServerChannel
+                  key={channel.id}
+                  channel={channel}
+                  server={server}
+                  role={handleRole}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!!videoChannels?.length && (
+          <div className="mt-2">
+            <ServerSection
+              sectionType="channels"
+              channelType={ChannelType.VIDEO}
+              role={handleRole}
+              label="Video Channels"
+            />
+            <div className="space-y-[2px]">
+              {videoChannels?.map((channel) => (
+                <ServerChannel
+                  key={channel.id}
+                  channel={channel}
+                  server={server}
+                  role={handleRole}
+                />
               ))}
             </div>
           </div>
