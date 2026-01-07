@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import { db } from "@/src/server/config/db.ts";
 import { LoginSchema, RegisterSchema } from "@/schemas/index.ts";
 import { users } from "../config/schema.ts";
+import { IRequest } from "../types/index.ts";
 
 dotenv.config();
 
@@ -95,8 +96,22 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
-export const refresh = async (req: Request, res: Response) => {
+export const refresh = async (req: IRequest, res: Response) => {
   try {
+    const user = req.user;
+    
+    if (!user || !user.email) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.email, user.email),
+    });
+
+    if (!existingUser || !existingUser.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const refreshToken = req.cookies.refresh;
 
     if (!refreshToken) {
