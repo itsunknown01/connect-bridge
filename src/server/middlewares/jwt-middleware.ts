@@ -2,6 +2,9 @@ import dotenv from "dotenv";
 import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 import { IRequest, IUser } from "../types/index.ts";
+import { users } from "../config/schema.ts";
+import { eq } from "drizzle-orm";
+import { db } from "../config/db.ts";
 
 dotenv.config();
 
@@ -24,6 +27,14 @@ export default function JWTMiddleware(
         if (err) return res.sendStatus(403);
 
         const decodedToken = decoded as IUser;
+
+        const existingUser = await db.query.users.findFirst({
+          where: eq(users.email, decodedToken.email),
+        });
+
+        if (!existingUser || !existingUser.id) {
+          return res.status(401).json({ message: "Unauthorized" });
+        }
 
         req.user = {
           id: decodedToken?.id,

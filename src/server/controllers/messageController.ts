@@ -7,11 +7,10 @@ import { IRequest } from "../types/index.ts";
 export async function getMessages(req: IRequest, res: Response) {
   try {
     const {
-      params: { id },
+      params: { id: channelId },
       user,
+      query: { limit },
     } = req;
-
-    const limit = Math.min(Number(req.query.limit) || 50, 100);
 
     if (!user || !user.email) {
       return res.status(401).json({ message: "User not authenticated" });
@@ -27,7 +26,7 @@ export async function getMessages(req: IRequest, res: Response) {
 
     const isMember = await db.query.channelMembers.findFirst({
       where: and(
-        eq(channelMembers.channelId, Number(id)),
+        eq(channelMembers.channelId, Number(channelId)),
         eq(channelMembers.userId, existingUser.id)
       ),
     });
@@ -43,11 +42,13 @@ export async function getMessages(req: IRequest, res: Response) {
         authorId: messages.authorId,
         content: messages.content,
         createdAt: messages.createdAt,
+        authorName: users.name,
       })
       .from(messages)
-      .where(eq(messages.channelId, Number(id)))
+      .innerJoin(users, eq(messages.authorId, users.id))
+      .where(eq(messages.channelId, Number(channelId)))
       .orderBy(messages.createdAt)
-      .limit(limit);
+      .limit(Number(limit) || 50);
 
     return res.status(200).json({ messages: channelMessages });
   } catch (error) {
@@ -59,7 +60,7 @@ export async function getMessages(req: IRequest, res: Response) {
 export async function MessageSearch(req: IRequest, res: Response) {
   try {
     const {
-      params: { id },
+      params: { id: channelId },
       user,
     } = req;
 
@@ -75,15 +76,22 @@ export async function MessageSearch(req: IRequest, res: Response) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { query } = req.query;
+    const search = req.query.search;
+    const limitRaw = Number(req.query.limit);
 
-    if (!query || typeof query !== "string") {
+    if (!search || typeof search !== "string") {
       return res.status(400).json({ error: "Query parameter is required" });
     }
 
+    if (!Number.isInteger(limitRaw) || limitRaw <= 0) {
+      return res.status(400).json({ error: "Invalid limit" });
+    }
+
+    const limit = Math.min(limitRaw, 100);
+
     const isMember = await db.query.channelMembers.findFirst({
       where: and(
-        eq(channelMembers.channelId, Number(id)),
+        eq(channelMembers.channelId, Number(channelId)),
         eq(channelMembers.userId, existingUser.id)
       ),
     });
@@ -92,17 +100,27 @@ export async function MessageSearch(req: IRequest, res: Response) {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    const results = await db
-      .select()
-      .from(messages)
-      .where(
-        and(
-          eq(messages.channelId, Number(id)),
-          like(messages.content, `%${query}%`)
+    const whereCondition = search
+      ? and(
+          eq(messages.channelId, Number(channelId)),
+          like(messages.content, `%${search}%`)
         )
-      )
+      : eq(messages.channelId, Number(channelId));
+
+    const results = await db
+      .select({
+        id: messages.id,
+        channelId: messages.channelId,
+        authorId: messages.authorId,
+        content: messages.content,
+        createdAt: messages.createdAt,
+        authorName: users.name,
+      })
+      .from(messages)
+      .innerJoin(users, eq(messages.authorId, users.id))
+      .where(whereCondition)
       .orderBy(messages.createdAt)
-      .limit(50);
+      .limit(limit);
 
     return res.status(200).json({ messages: results });
   } catch (error) {

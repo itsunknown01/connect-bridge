@@ -2,6 +2,7 @@ import express from "express";
 import {
   createChannel,
   deleteChannel,
+  fetchChannelMembers,
   getChannelById,
   getChannels,
   joinChannel,
@@ -14,6 +15,7 @@ const router = express.Router();
 router.get("/channels", JWTMiddleware, getChannels);
 router.get("/channel/:id", JWTMiddleware, getChannelById);
 router.get("/channels/:id/join", JWTMiddleware, joinChannel);
+router.get('/channels/:id/members',JWTMiddleware, fetchChannelMembers)
 router.post("/create-channels", JWTMiddleware, createChannel);
 router.put("/update-channels/:id", JWTMiddleware, updateChannel);
 router.delete("/delete-channels/:id", JWTMiddleware, deleteChannel);

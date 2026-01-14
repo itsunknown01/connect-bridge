@@ -48,7 +48,7 @@ export const login = async (req: Request, res: Response) => {
 
     res.cookie("refresh", refreshToken, {
       httpOnly: true,
-      secure: false,
+      secure: true,
       sameSite: "none",
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
@@ -56,6 +56,11 @@ export const login = async (req: Request, res: Response) => {
     return res.status(200).json({
       message: "Login Successful",
       accessToken,
+      user: {
+        id: existingUser.id,
+        name: existingUser.name,
+        email: existingUser.email,
+      },
     });
   } catch (error) {
     console.log("Login API Error:", error);
@@ -98,20 +103,6 @@ export const register = async (req: Request, res: Response) => {
 
 export const refresh = async (req: IRequest, res: Response) => {
   try {
-    const user = req.user;
-    
-    if (!user || !user.email) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const existingUser = await db.query.users.findFirst({
-      where: eq(users.email, user.email),
-    });
-
-    if (!existingUser || !existingUser.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
     const refreshToken = req.cookies.refresh;
 
     if (!refreshToken) {
@@ -123,13 +114,28 @@ export const refresh = async (req: IRequest, res: Response) => {
       process.env.REFRESH_TOKEN_SECRET as string
     ) as jwt.JwtPayload;
 
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.email, payload.email),
+    });
+
+    if (!existingUser || !existingUser.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const accessToken = jwt.sign(
       { email: payload.email },
       process.env.ACCESS_TOKEN_SECRET as string,
       { expiresIn: "1d" }
     );
 
-    return res.status(200).json({ accessToken });
+    return res.status(200).json({
+      accessToken,
+      user: {
+        id: existingUser.id,
+        name: existingUser.name,
+        email: existingUser.email,
+      },
+    });
   } catch (error) {
     console.log("Refresh API Error:", error);
     return res.status(500).json({ message: "Internal Server Error" });

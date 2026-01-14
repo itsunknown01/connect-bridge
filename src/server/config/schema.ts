@@ -1,4 +1,11 @@
-import { int, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import {
+  int,
+  mysqlTable,
+  primaryKey,
+  text,
+  timestamp,
+  varchar,
+} from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").primaryKey().autoincrement(),
@@ -15,12 +22,17 @@ export const channels = mysqlTable("channels", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const channelMembers = mysqlTable("channel_members", {
-  id: int("id").primaryKey().autoincrement(),
-  userId: int("user_id").notNull(),
-  channelId: int("channel_id").notNull(),
-  joinedAt: timestamp("joined_at").defaultNow(),
-});
+export const channelMembers = mysqlTable(
+  "channel_members",
+  {
+    userId: int("user_id").notNull(),
+    channelId: int("channel_id").notNull(),
+    joinedAt: timestamp("joined_at").defaultNow(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.channelId] }),
+  })
+);
 
 export const messages = mysqlTable("messages", {
   id: int("id").primaryKey().autoincrement(),
@@ -37,5 +49,15 @@ export const knowledgeArtifacts = mysqlTable("knowledge_artifacts", {
   authorId: int("author_id").notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const outcomes = mysqlTable("outcomes", {
+  id: int("id").primaryKey().autoincrement(),
+  channelId: int("channel_id").notNull(),
+  messageId: int("message_id").notNull(),
+  type: varchar("type", { length: 10 }).$type<"decision" | "action">().notNull(),
+  assigneeId: int("assignee_id").notNull(),
+  createdBy: int("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
