@@ -31,7 +31,7 @@ export const channelMembers = mysqlTable(
   },
   (table) => ({
     pk: primaryKey({ columns: [table.userId, table.channelId] }),
-  })
+  }),
 );
 
 export const messages = mysqlTable("messages", {
@@ -47,7 +47,6 @@ export const knowledgeArtifacts = mysqlTable("knowledge_artifacts", {
   channelId: int("channel_id").notNull(),
   sourceMessageId: int("message_id").notNull(),
   authorId: int("author_id").notNull(),
-  title: varchar("title", { length: 255 }).notNull(),
   content: text("content").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -56,8 +55,10 @@ export const outcomes = mysqlTable("outcomes", {
   id: int("id").primaryKey().autoincrement(),
   channelId: int("channel_id").notNull(),
   messageId: int("message_id").notNull(),
-  type: varchar("type", { length: 10 }).$type<"decision" | "action">().notNull(),
-  assigneeId: int("assignee_id").notNull(),
+  type: varchar("type", { length: 10 })
+    .$type<"decision" | "action">()
+    .notNull(),
+  assigneeId: int("assignee_id"),
   createdBy: int("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });

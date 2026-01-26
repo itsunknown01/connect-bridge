@@ -9,6 +9,17 @@ import {
   users,
 } from "../config/schema.ts";
 import { and, eq } from "drizzle-orm";
+import { alias } from "drizzle-orm/mysql-core";
+import {
+  sendBadRequest,
+  sendCreated,
+  sendForbidden,
+  sendNotFound,
+  sendResponse,
+  sendServerError,
+  sendSuccess,
+  sendUnauthorized,
+} from "../helpers/response.ts";
 
 export const fetchChannelOutcomes = async (req: IRequest, res: Response) => {
   try {
@@ -17,36 +28,20 @@ export const fetchChannelOutcomes = async (req: IRequest, res: Response) => {
       user,
     } = req;
 
-    if (!user || !user.email) {
-      return res.status(401).json({ message: "User not authenticated" });
-    }
-
-    const existingUser = await db.query.users.findFirst({
-      where: eq(users.email, user.email),
-    });
-
-    if (!existingUser || !existingUser.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const channel = await db.query.channels.findFirst({
-      where: eq(channels.id, Number(channelId)),
-    });
-
-    if (!channel) {
-      return res.status(404).json({ message: "Channel not found" });
-    }
+    if (!user) return sendUnauthorized(res);
 
     const isMember = await db.query.channelMembers.findFirst({
-      where:
-        eq(channelMembers.channelId, Number(channelId)) &&
-        eq(channelMembers.userId, existingUser.id),
+      where: and(
+        eq(channelMembers.channelId, Number(channelId)),
+        eq(channelMembers.userId, user.id),
+      ),
     });
 
     if (!isMember)
-      return res
-        .status(404)
-        .json({ message: "User is not member of the channel" });
+      return sendForbidden(res, "User is not member of the channel");
+
+    const assigneeAlias = alias(users, "assignee");
+    const authorAlias = alias(users, "author");
 
     const results = await db
       .select({
@@ -57,15 +52,20 @@ export const fetchChannelOutcomes = async (req: IRequest, res: Response) => {
         assignedId: outcomes.assigneeId,
         createdBy: outcomes.createdBy,
         createdAt: outcomes.createdAt,
+        content: messages.content,
+        authorName: authorAlias.name,
+        assigneeName: assigneeAlias.name,
       })
       .from(outcomes)
-      .where(eq(outcomes.channelId, channel.id))
+      .innerJoin(messages, eq(outcomes.messageId, messages.id))
+      .innerJoin(authorAlias, eq(messages.authorId, authorAlias.id))
+      .leftJoin(assigneeAlias, eq(outcomes.assigneeId, assigneeAlias.id))
+      .where(eq(outcomes.channelId, Number(channelId)))
       .orderBy(outcomes.createdAt);
 
-    return res.status(200).json({ results });
+    return sendResponse(res, 200, { results });
   } catch (error) {
-    console.log("Fetch Outcomes API ERROR: ", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return sendServerError(res, "Fetch Outcomes Error", error);
   }
 };
 
@@ -77,36 +77,17 @@ export const createChannelOutcome = async (req: IRequest, res: Response) => {
       body: { messageId, type, assignedId },
     } = req;
 
-    if (!user || !user.email) {
-      return res.status(401).json({ message: "User not authenticated" });
-    }
-
-    const existingUser = await db.query.users.findFirst({
-      where: eq(users.email, user.email),
-    });
-
-    if (!existingUser || !existingUser.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const channel = await db.query.channels.findFirst({
-      where: eq(channels.id, Number(channelId)),
-    });
-
-    if (!channel) {
-      return res.status(404).json({ message: "Channel not found" });
-    }
+    if (!user) return sendUnauthorized(res);
 
     const isMember = await db.query.channelMembers.findFirst({
-      where:
-        eq(channelMembers.channelId, Number(channelId)) &&
-        eq(channelMembers.userId, existingUser.id),
+      where: and(
+        eq(channelMembers.channelId, Number(channelId)),
+        eq(channelMembers.userId, user.id),
+      ),
     });
 
     if (!isMember)
-      return res
-        .status(404)
-        .json({ message: "User is not member of the channel" });
+      return sendForbidden(res, "User is not member of the channel");
 
     const message = await db.query.messages.findFirst({
       where: eq(messages.id, Number(messageId)),
@@ -115,40 +96,61 @@ export const createChannelOutcome = async (req: IRequest, res: Response) => {
     if (!message || message.channelId !== Number(channelId))
       return res.status(404).json({ message: "Message not found" });
 
-    const assignedMember = await db.query.channelMembers.findFirst({
-      where: and(
-        eq(channelMembers.channelId, channel.id),
-        eq(channelMembers.userId, Number(assignedId))
-      ),
-    });
+    let assignedUserId = null;
+    if (assignedId) {
+      const assignedMember = await db.query.channelMembers.findFirst({
+        where: and(
+          eq(channelMembers.channelId, Number(channelId)),
+          eq(channelMembers.userId, Number(assignedId)),
+        ),
+      });
 
-    if (!assignedMember)
-      return res.status(404).json({ message: "Not a member of the channel" });
+      if (!assignedMember)
+        return sendNotFound(res, "Assignee is not a member of the channel");
+
+      assignedUserId = assignedMember.userId;
+    }
 
     const [inserted] = await db
       .insert(outcomes)
       .values({
-        channelId: channel.id,
+        channelId: Number(channelId),
         messageId: message.id,
         type,
-        assigneeId: assignedMember.userId,
-        createdBy: existingUser.id,
+        assigneeId: assignedUserId,
+        createdBy: user.id,
       })
       .$returningId();
 
-    const currentOutcome = await db.query.outcomes.findFirst({
-      where: eq(outcomes.id, inserted.id),
-    });
+    // Fetch enriched outcome for immediate UI update
+    const assigneeAlias = alias(users, "assignee");
+    const authorAlias = alias(users, "author");
+
+    const [currentOutcome] = await db
+      .select({
+        id: outcomes.id,
+        channelId: outcomes.channelId,
+        messageId: outcomes.messageId,
+        type: outcomes.type,
+        assignedId: outcomes.assigneeId,
+        createdBy: outcomes.createdBy,
+        createdAt: outcomes.createdAt,
+        content: messages.content,
+        authorName: authorAlias.name,
+        assigneeName: assigneeAlias.name,
+      })
+      .from(outcomes)
+      .innerJoin(messages, eq(outcomes.messageId, messages.id))
+      .innerJoin(authorAlias, eq(messages.authorId, authorAlias.id))
+      .leftJoin(assigneeAlias, eq(outcomes.assigneeId, assigneeAlias.id))
+      .where(eq(outcomes.id, inserted.id));
 
     if (!currentOutcome)
-      return res.status(404).json({ message: "Outcome not created properly" });
+      return sendNotFound(res, "Outcome not created properly");
 
-    return res
-      .status(201)
-      .json({ currentOutcome, message: "Outcome created successfully" });
+    return sendCreated(res, "Outcome created successfully", { currentOutcome });
   } catch (error) {
-    console.log("Create Outcome API ERROR: ", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return sendServerError(res, "Create Outcome Error", error);
   }
 };
 
@@ -159,41 +161,22 @@ export const deleteChannelOutcome = async (req: IRequest, res: Response) => {
       user,
     } = req;
 
-    if (!user || !user.email) {
-      return res.status(401).json({ message: "User not authenticated" });
-    }
-
-    const existingUser = await db.query.users.findFirst({
-      where: eq(users.email, user.email),
-    });
-
-    if (!existingUser || !existingUser.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const channel = await db.query.channels.findFirst({
-      where: eq(channels.id, Number(channelId)),
-    });
-
-    if (!channel) {
-      return res.status(404).json({ message: "Channel not found" });
-    }
+    if (!user) return sendUnauthorized(res);
 
     const isMember = await db.query.channelMembers.findFirst({
-      where:
-        eq(channelMembers.channelId, Number(channelId)) &&
-        eq(channelMembers.userId, existingUser.id),
+      where: and(
+        eq(channelMembers.channelId, Number(channelId)),
+        eq(channelMembers.userId, user.id),
+      ),
     });
 
     if (!isMember)
-      return res
-        .status(404)
-        .json({ message: "User is not member of the channel" });
+      return sendForbidden(res, "User is not member of the channel");
 
     const outcome = await db.query.outcomes.findFirst({
       where: and(
         eq(outcomes.id, Number(outcomeId)),
-        eq(outcomes.channelId, channel.id)
+        eq(outcomes.channelId, Number(channelId)),
       ),
     });
 
@@ -201,9 +184,8 @@ export const deleteChannelOutcome = async (req: IRequest, res: Response) => {
 
     await db.delete(outcomes).where(eq(outcomes.id, outcome.id));
 
-    return res.status(204).json({ message: "Outcome deleted successfully" });
+    return sendResponse(res, 204, { message: "Outcome deleted successfully" });
   } catch (error) {
-    console.log("Delete Outcome API ERROR: ", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return sendServerError(res, "Delete Outcome Error", error);
   }
 };

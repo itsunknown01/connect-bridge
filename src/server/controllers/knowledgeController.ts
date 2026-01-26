@@ -9,6 +9,16 @@ import {
   users,
 } from "../config/schema.ts";
 import { and, asc, eq } from "drizzle-orm";
+import {
+  sendBadRequest,
+  sendCreated,
+  sendForbidden,
+  sendNotFound,
+  sendResponse,
+  sendServerError,
+  sendSuccess,
+  sendUnauthorized,
+} from "../helpers/response.ts";
 
 export const fetchChannelKnowledge = async (req: IRequest, res: Response) => {
   try {
@@ -38,15 +48,14 @@ export const fetchChannelKnowledge = async (req: IRequest, res: Response) => {
     }
 
     const isMember = await db.query.channelMembers.findFirst({
-      where:
-        eq(channelMembers.channelId, Number(channelId)) &&
-        eq(channelMembers.userId, existingUser.id),
+      where: and(
+        eq(channelMembers.channelId, Number(channelId)),
+        eq(channelMembers.userId, user.id),
+      ),
     });
 
     if (!isMember)
-      return res
-        .status(404)
-        .json({ message: "User is not member of the channel" });
+      return sendForbidden(res, "User is not member of the channel");
 
     const items = await db
       .select({
@@ -62,10 +71,9 @@ export const fetchChannelKnowledge = async (req: IRequest, res: Response) => {
       .where(eq(users.id, knowledgeArtifacts.authorId))
       .orderBy(asc(knowledgeArtifacts.createdAt));
 
-    return res.status(200).json({ items });
+    return sendResponse(res, 200, { items, channelId });
   } catch (error) {
-    console.log("Fetch Knowledges API ERROR: ", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return sendServerError(res, "Fetch Knowledge Error", error);
   }
 };
 
@@ -98,9 +106,10 @@ export const createChannelKnowledge = async (req: IRequest, res: Response) => {
     }
 
     const isMember = await db.query.channelMembers.findFirst({
-      where:
-        eq(channelMembers.channelId, Number(channelId)) &&
+      where: and(
+        eq(channelMembers.channelId, Number(channelId)),
         eq(channelMembers.userId, existingUser.id),
+      ),
     });
 
     if (!isMember)
@@ -113,20 +122,14 @@ export const createChannelKnowledge = async (req: IRequest, res: Response) => {
     });
 
     if (!message || message.channelId !== Number(channelId)) {
-      return res.status(404).json({ error: "Message not found" });
+      return sendNotFound(res, "Message not found");
     }
-
-    const title =
-      message.content.length > 80
-        ? message.content.slice(0, 77) + "..."
-        : message.content;
 
     const [inserted] = await db
       .insert(knowledgeArtifacts)
       .values({
         channelId: Number(channelId),
         sourceMessageId,
-        title,
         authorId: message.authorId,
         content: message.content,
       })
@@ -140,18 +143,15 @@ export const createChannelKnowledge = async (req: IRequest, res: Response) => {
     });
 
     if (!author)
-      return res
-        .status(404)
-        .json({ message: "Knowledge is not assigned by author" });
+      return sendNotFound(res, "Knowledge is not assigned by author");
 
     const currentKnowledge = await db.query.knowledgeArtifacts.findFirst({
       where: eq(knowledgeArtifacts.id, inserted.id),
     });
 
-    if (!currentKnowledge)
-      return res.status(404).json({ message: "Knowledge is not found" });
+    if (!currentKnowledge) return sendNotFound(res, "Knowledge is not found");
 
-    return res.status(201).json({
+    return sendCreated(res, "Knowledge created successfully", {
       knowledge: {
         id: currentKnowledge.id,
         messageId: currentKnowledge.sourceMessageId,
@@ -160,10 +160,10 @@ export const createChannelKnowledge = async (req: IRequest, res: Response) => {
         authorName: author?.name ?? "Unknown",
         createdAt: currentKnowledge.createdAt,
       },
+      channelId,
     });
   } catch (error) {
-    console.log("Create Knowledge API ERROR: ", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return sendServerError(res, "Create Knowledge Error", error);
   }
 };
 
@@ -195,9 +195,10 @@ export const deleteChannelKnowledge = async (req: IRequest, res: Response) => {
     }
 
     const isMember = await db.query.channelMembers.findFirst({
-      where:
-        eq(channelMembers.channelId, Number(channelId)) &&
+      where: and(
+        eq(channelMembers.channelId, Number(channelId)),
         eq(channelMembers.userId, existingUser.id),
+      ),
     });
 
     if (!isMember)
@@ -209,21 +210,22 @@ export const deleteChannelKnowledge = async (req: IRequest, res: Response) => {
       where: eq(knowledgeArtifacts.id, Number(knowledgeId)),
     });
 
-    if (!currentKnowledge)
-      return res.status(404).json({ message: "Knowledge is not found" });
+    if (!currentKnowledge) return sendNotFound(res, "Knowledge is not found");
 
     await db
       .delete(knowledgeArtifacts)
       .where(
         and(
           eq(knowledgeArtifacts.id, Number(knowledgeId)),
-          eq(knowledgeArtifacts.channelId, Number(channelId))
-        )
+          eq(knowledgeArtifacts.channelId, Number(channelId)),
+        ),
       );
 
-    return res.status(204).json({ message: "Knowledge deleted successfully" });
+    return sendSuccess(res, "Knowledge deleted successfully", {
+      knowledgeId,
+      channelId,
+    });
   } catch (error) {
-    console.log("Delete Knowledge API ERROR: ", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return sendServerError(res, "Delete Knowledge Error", error);
   }
 };
