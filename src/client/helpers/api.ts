@@ -3,7 +3,7 @@ import { logoutUserAsync, refreshTokenAsync } from "../redux/slices/authSlice";
 
 import { AppDispatch, RootState } from "../redux/store";
 
-const BASE_URL = "/api";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default axios.create({
   baseURL: BASE_URL,
