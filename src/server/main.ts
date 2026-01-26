@@ -48,6 +48,13 @@ app.use("/api/channels", messageRoutes);
 app.use("/api/channels", knowledgeRoutes);
 app.use("/api/channels", outcomeRoutes);
 
-server.listen(3000, () => {
-  console.log("Server is connected in 3000....");
+// Health check for Render
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, () => {
+  console.log(`Server is connected on port ${PORT}...`);
 });
