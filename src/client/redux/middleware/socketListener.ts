@@ -45,7 +45,7 @@ socketListener.startListening({
 
     socket = io(serverUrl, {
       withCredentials: true,
-      transports: ["polling", "websocket"],
+      transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,
