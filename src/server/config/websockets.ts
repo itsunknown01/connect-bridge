@@ -34,36 +34,52 @@ if (isRedisConfigured) {
 }
 
 io.use(async (socket, next) => {
-  const cookies = socket.request.headers.cookie;
-  if (!cookies) return next(new Error("Unauthorized"));
-
-  const token = cookies
-    .split("; ")
-    .find((c) => c.startsWith("refresh="))
-    ?.split("=")[1];
-
-  if (!token) return next(new Error("Unauthorized"));
-
   try {
+    const cookies = socket.request.headers.cookie;
+    if (!cookies) {
+      console.log("Socket auth failed: No cookies");
+      return next(new Error("Unauthorized"));
+    }
+
+    const token = cookies
+      .split("; ")
+      .find((c) => c.startsWith("refresh="))
+      ?.split("=")[1];
+
+    if (!token) {
+      console.log("Socket auth failed: No refresh token found");
+      return next(new Error("Unauthorized"));
+    }
+
     const payload = jwt.verify(
       token,
       process.env.REFRESH_TOKEN_SECRET as string,
     ) as jwt.JwtPayload;
 
-    if (!payload) return next(new Error("Not authenticated"));
+    if (!payload) {
+      console.log("Socket auth failed: Payload invalid");
+      return next(new Error("Not authenticated"));
+    }
 
     const existingUser = await db.query.users.findFirst({
       where: eq(users.email, payload.email),
     });
 
-    if (!existingUser) return next(new Error("User does not exist"));
+    if (!existingUser) {
+      console.log(
+        `Socket auth failed: User not found for email ${payload.email}`,
+      );
+      return next(new Error("User does not exist"));
+    }
+
     socket.user = {
       sub: String(existingUser.id),
       exp: payload.exp,
       iat: payload.iat,
     };
     next();
-  } catch {
+  } catch (err) {
+    console.log("Socket auth failed: Token verification error", err);
     return next(new Error("Unauthorized"));
   }
 });

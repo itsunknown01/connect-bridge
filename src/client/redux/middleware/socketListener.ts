@@ -26,7 +26,7 @@ import {
   removeLocalMessage,
 } from "../slices/messageSlice";
 import { RootState } from "../store";
-import { setUserOnlineStatus } from "../slices/authSlice";
+import { setUserOnlineStatus, logoutUserAsync } from "../slices/authSlice";
 import { Channel } from "../../lib/types";
 import logger from "../../lib/logger";
 
@@ -64,6 +64,17 @@ socketListener.startListening({
 
     socket.on("connect_error", (error) => {
       logger.error("[SOCKET] Connection error:", error);
+
+      const errorMessage = error.message;
+      if (
+        errorMessage === "Unauthorized" ||
+        errorMessage === "User does not exist" ||
+        errorMessage === "Not authenticated" ||
+        errorMessage === "server error" // Catch generic error if middleware failed hard
+      ) {
+        logger.warn("[SOCKET] Auth failed, logging out...");
+        listenerApi.dispatch(logoutUserAsync() as any);
+      }
     });
 
     socket.on("disconnect", (reason) => {
