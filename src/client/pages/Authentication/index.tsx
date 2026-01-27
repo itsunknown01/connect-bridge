@@ -38,7 +38,7 @@ const Auth = () => {
             <LoginForm />
           </TabsContent>
           <TabsContent value="register" className="mt-0">
-            <RegisterForm />
+            <RegisterForm onTabChange={setActiveTab} />
           </TabsContent>
         </Tabs>
       </AuthWrapper>

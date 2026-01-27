@@ -44,6 +44,7 @@ const RegisterForm = ({
   const RegisterSubmit = async (values: z.infer<typeof RegisterSchema>) => {
     const result = await dispatch(registerUserAsync(values));
     if (registerUserAsync.fulfilled.match(result)) {
+      form.reset();
       onTabChange("login");
     }
   };
