@@ -1,45 +1,43 @@
-import { useAppDispatch } from "@/src/client/hooks";
-import { sendMessage } from "@/src/client/redux/slices/messageSlice";
-import { useCallback, useMemo } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { axiosPrivate } from "../helpers/api";
+import {
+  clearMessages,
+  fetchChannelMessagesAsync,
+  fetchMoreMessagesAsync,
+  sendMessage,
+} from "@/src/client/redux/slices/messageSlice";
+import { useAppDispatch, useAppSelector } from "@/src/client/hooks";
+import { useCallback, useEffect } from "react";
 
 export function useChatMessages(channelId: string | null) {
   const dispatch = useAppDispatch();
 
-  // Use TanStack Query for hyper-scale message fetching
   const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
+    messages,
+    loading,
+    loadingMore,
+    hasMore,
     error,
-  } = useInfiniteQuery({
-    queryKey: ["messages", channelId],
-    queryFn: async ({ pageParam }) => {
-      const res = await axiosPrivate.get(`/channels/${channelId}/messages`, {
-        params: { cursor: pageParam, limit: 50 },
-      });
-      return res.data;
-    },
-    initialPageParam: null,
-    getNextPageParam: (lastPage: any) => lastPage.nextCursor,
-    enabled: !!channelId,
-    // Keep data fresh but allow background updates
-    staleTime: 1000 * 60,
-  });
+    nextCursor,
+    loadedChannelId,
+  } = useAppSelector((state) => state.messageReducer);
 
-  // Flatten messages from all pages
-  const messages = useMemo(() => {
-    return data?.pages.flatMap((page: any) => page.messages) || [];
-  }, [data]);
+  // Initial fetch when channel changes
+  useEffect(() => {
+    if (channelId && loadedChannelId !== channelId) {
+      dispatch(clearMessages());
+      dispatch(fetchChannelMessagesAsync({ channelId }));
+    }
+  }, [channelId, dispatch, loadedChannelId]);
 
   const fetchMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+    if (hasMore && !loadingMore && nextCursor && channelId) {
+      dispatch(
+        fetchMoreMessagesAsync({
+          channelId,
+          cursor: nextCursor,
+        }),
+      );
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [hasMore, loadingMore, nextCursor, channelId, dispatch]);
 
   const send = (content: string) => {
     if (channelId) {
@@ -49,11 +47,11 @@ export function useChatMessages(channelId: string | null) {
 
   return {
     messages,
-    loading: isLoading,
-    loadingMore: isFetchingNextPage,
-    hasMore: !!hasNextPage,
+    loading,
+    loadingMore,
+    hasMore,
     fetchMore,
     send,
-    error: error ? (error as any).message : null,
+    error,
   };
 }

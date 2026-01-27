@@ -109,6 +109,9 @@ const LoginForm = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-1 top-1/2 -translate-y-1/2 text-[#ADBC9F] hover:text-[#12372A] hover:bg-transparent"
                     disabled={loading}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" />

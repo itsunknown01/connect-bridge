@@ -8,7 +8,7 @@ import { channelMembers, messages, users } from "./schema.ts";
 
 import dotenv from "dotenv";
 import { createAdapter } from "@socket.io/redis-adapter";
-import { redis, pubClient, subClient } from "./redis.ts";
+import { redis, pubClient, subClient, isRedisConfigured } from "./redis.ts";
 dotenv.config();
 
 const app = express();
@@ -21,7 +21,17 @@ const io = new Server(server, {
   },
 });
 
-io.adapter(createAdapter(pubClient, subClient));
+// Only use Redis adapter if Redis is properly configured
+if (isRedisConfigured) {
+  try {
+    io.adapter(createAdapter(pubClient, subClient));
+    console.log("Socket.IO Redis adapter enabled");
+  } catch (error) {
+    console.warn("Failed to initialize Redis adapter:", error);
+  }
+} else {
+  console.log("Socket.IO running in single-instance mode (no Redis)");
+}
 
 io.use(async (socket, next) => {
   const cookies = socket.request.headers.cookie;
@@ -65,28 +75,41 @@ io.on("connection", async (socket) => {
   console.log(`User connected: ${userId} (${socket.id})`);
 
   // ONLINE TRACKING (Distributed)
-  if (userId) {
-    const userSocketsKey = `user_sockets:${userId}`;
-    const wasOnline = await redis.exists(userSocketsKey);
+  if (userId && isRedisConfigured) {
+    try {
+      const userSocketsKey = `user_sockets:${userId}`;
+      const wasOnline = await redis.exists(userSocketsKey);
 
-    await redis.sadd(userSocketsKey, socket.id);
-    await redis.sadd("online_users_set", userId); // Track globally
-    socket.join(`user-${userId}`);
+      await redis.sadd(userSocketsKey, socket.id);
+      await redis.sadd("online_users_set", userId); // Track globally
+      socket.join(`user-${userId}`);
 
-    if (!wasOnline) {
-      // Instead of broadcasting to everyone, we broadcast the new count
-      const count = await redis.scard("online_users_set");
-      io.emit("online_count", count);
+      if (!wasOnline) {
+        // Instead of broadcasting to everyone, we broadcast the new count
+        const count = await redis.scard("online_users_set");
+        io.emit("online_count", count);
+      }
+    } catch (e) {
+      console.error("Redis error in online tracking:", e);
     }
+  } else if (userId) {
+    // Non-redis fallback: just join user room
+    socket.join(`user-${userId}`);
   }
 
   // Provide a capped list and the total count
-  const onlineCount = await redis.scard("online_users_set");
-  // Only send the first 50 users to avoid massive payloads
-  const allOnlineUsers = await redis.srandmember("online_users_set", 50);
+  if (isRedisConfigured) {
+    try {
+      const onlineCount = await redis.scard("online_users_set");
+      // Only send the first 50 users to avoid massive payloads
+      const allOnlineUsers = await redis.srandmember("online_users_set", 50);
 
-  socket.emit("online_count", onlineCount);
-  socket.emit("online_users", allOnlineUsers);
+      socket.emit("online_count", onlineCount);
+      socket.emit("online_users", allOnlineUsers);
+    } catch (e) {
+      console.warn("Failed to fetch online users from Redis:", e);
+    }
+  }
 
   // JOIN CHANNELS
   socket.on("join-channel", async (channelId: string) => {
@@ -108,18 +131,24 @@ io.on("connection", async (socket) => {
 
       socket.join(`channel-${channelId}`);
 
-      // Track channel-specific presence
-      await redis.sadd(`channel_online_users:${channelId}`, userId);
-      await redis.sadd(`user_channels:${userId}`, channelId);
+      if (isRedisConfigured) {
+        try {
+          // Track channel-specific presence
+          await redis.sadd(`channel_online_users:${channelId}`, userId);
+          await redis.sadd(`user_channels:${userId}`, channelId);
 
-      // Emit current online users in this channel to the joining user
-      const channelOnlineUsers = await redis.smembers(
-        `channel_online_users:${channelId}`,
-      );
-      socket.emit("channel_online_users", {
-        channelId,
-        users: channelOnlineUsers,
-      });
+          // Emit current online users in this channel to the joining user
+          const channelOnlineUsers = await redis.smembers(
+            `channel_online_users:${channelId}`,
+          );
+          socket.emit("channel_online_users", {
+            channelId,
+            users: channelOnlineUsers,
+          });
+        } catch (e) {
+          console.error("Redis error in join-channel:", e);
+        }
+      }
 
       // Signal others in the channel
       socket.to(`channel-${channelId}`).emit("user-online", userId);
@@ -193,6 +222,7 @@ io.on("connection", async (socket) => {
         const rooms = Array.from(socket.rooms);
         console.log(`Socket ${socket.id} active rooms:`, rooms);
 
+        // Emit to everyone in the channel (including sender if they're in the room)
         io.to(`channel-${channelId}`).emit("new-message", messageData);
         console.log(`Socket emission attempted to: channel-${channelId}`);
       } catch (error) {
@@ -205,23 +235,29 @@ io.on("connection", async (socket) => {
     console.log("A user disconnected", socket.id);
     if (!userId) return;
 
-    const userSocketsKey = `user_sockets:${userId}`;
-    await redis.srem(userSocketsKey, socket.id);
+    if (isRedisConfigured) {
+      try {
+        const userSocketsKey = `user_sockets:${userId}`;
+        await redis.srem(userSocketsKey, socket.id);
 
-    const remainingSockets = await redis.scard(userSocketsKey);
-    if (remainingSockets === 0) {
-      await redis.srem("online_users_set", userId); // Remove from global track
+        const remainingSockets = await redis.scard(userSocketsKey);
+        if (remainingSockets === 0) {
+          await redis.srem("online_users_set", userId); // Remove from global track
 
-      // Clean up channel-specific presence
-      const userChannels = await redis.smembers(`user_channels:${userId}`);
-      for (const channelId of userChannels) {
-        await redis.srem(`channel_online_users:${channelId}`, userId);
-        io.to(`channel-${channelId}`).emit("user-offline", userId);
+          // Clean up channel-specific presence
+          const userChannels = await redis.smembers(`user_channels:${userId}`);
+          for (const channelId of userChannels) {
+            await redis.srem(`channel_online_users:${channelId}`, userId);
+            io.to(`channel-${channelId}`).emit("user-offline", userId);
+          }
+          await redis.del(`user_channels:${userId}`);
+
+          const count = await redis.scard("online_users_set");
+          io.emit("online_count", count);
+        }
+      } catch (e) {
+        console.error("Redis error in disconnect:", e);
       }
-      await redis.del(`user_channels:${userId}`);
-
-      const count = await redis.scard("online_users_set");
-      io.emit("online_count", count);
     }
   });
 });

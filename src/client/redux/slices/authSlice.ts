@@ -66,7 +66,7 @@ export const refreshTokenAsync = createAsyncThunk(
 );
 
 export const logoutUserAsync = createAsyncThunk("user/logoutUser", async () => {
-  const response = await axios.post("/logout");
+  const response = await axios.get("/logout");
   return response;
 });
 

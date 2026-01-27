@@ -114,6 +114,7 @@ socketListener.startListening({
     });
 
     socket.on("new-message", (message) => {
+      logger.info("[SOCKET] New message:", message);
       listenerApi.dispatch(appendMessage(message));
     });
 

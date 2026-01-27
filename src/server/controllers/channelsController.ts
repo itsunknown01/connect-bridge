@@ -18,7 +18,7 @@ import {
 } from "../helpers/response.ts";
 import { getOrSet, invalidateCache } from "../helpers/cache.ts";
 import { io } from "../config/websockets.ts";
-import { redis } from "../config/redis.ts";
+import { redis, isRedisConfigured } from "../config/redis.ts";
 
 export const getChannels = async (req: IRequest, res: Response) => {
   try {
@@ -42,7 +42,7 @@ export const getChannels = async (req: IRequest, res: Response) => {
             )`,
           })
           .from(channels)
-          .innerJoin(channelMembers, eq(channels.id, channelMembers.userId)) // logic correction: should be channelMembers.channelId but sticking to current implementation for caching first
+          .innerJoin(channelMembers, eq(channels.id, channelMembers.channelId))
           .leftJoin(messages, eq(channels.id, messages.channelId))
           .where(eq(channelMembers.userId, user.id))
           .groupBy(channels.id);
@@ -431,8 +431,14 @@ export const removeMember = async (req: IRequest, res: Response) => {
     await invalidateCache(`user_channels_list:${userId}`);
 
     // 📢 CLEAN UP REDIS PRESENCE FOR THE KICKED USER
-    await redis.srem(`channel_online_users:${channelId}`, userId);
-    await redis.srem(`user_channels:${userId}`, channelId);
+    if (isRedisConfigured) {
+      try {
+        await redis.srem(`channel_online_users:${channelId}`, userId);
+        await redis.srem(`user_channels:${userId}`, channelId);
+      } catch (error) {
+        console.error("Redis Error in removeMember:", error);
+      }
+    }
 
     // 📢 NOTIFY THE KICKED USER
     io.to(`user-${userId}`).emit("member-removed", {
