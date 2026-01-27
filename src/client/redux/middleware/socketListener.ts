@@ -40,7 +40,10 @@ socketListener.startListening({
   effect: async (_, listenerApi) => {
     if (socket) return;
 
-    const serverUrl = window.location.origin;
+    const serverUrl =
+      import.meta.env.VITE_SERVER_URL ||
+      import.meta.env.VITE_API_URL ||
+      window.location.origin;
     logger.info("[SOCKET] Initializing connection to:", serverUrl);
 
     socket = io(serverUrl, {
