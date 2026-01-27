@@ -15,7 +15,7 @@ import {
   FormMessage,
   Input,
 } from "../ui";
-import { DialogFooter } from "../ui/dialog";
+
 import { Modal } from "../ui/modal";
 import { createChannelAsync } from "../../redux/slices/channelSlice";
 
@@ -57,6 +57,7 @@ export default function CreateChannelModal() {
       title="Create Channel"
       description="Enter a name for your new channel"
       onClose={handleClose}
+      className="sm:max-w-[425px] dark:bg-gradient-to-b dark:from-[#12372A] dark:to-[#0d2a1f] dark:border-[#ADBC9F]/20 dark:text-white"
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(createChannelSubmit)}>
@@ -71,7 +72,7 @@ export default function CreateChannelModal() {
                     placeholder="Channel name (e.g., project-alpha)"
                     type="text"
                     disabled={loading}
-                    className="col-span-4"
+                    className="col-span-4 dark:bg-white/5 dark:border-white/10 dark:text-white"
                     {...field}
                   />
                 </FormControl>
@@ -79,18 +80,18 @@ export default function CreateChannelModal() {
               </FormItem>
             )}
           />
-          <DialogFooter className="flex gap-2 justify-end py-2">
+          <div className="flex gap-2 justify-end py-2">
             <Button variant="outline" onClick={handleClose}>
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-[#12372A] hover:bg-[#12372A]/90 text-white"
+              className="bg-[#12372A] hover:bg-[#12372A]/90 text-white dark:bg-[#ADBC9F] dark:text-[#12372A] dark:hover:bg-[#ADBC9F]/90 transition-colors"
               disabled={loading}
             >
               {loading ? "Creating...." : "Create Channel"}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </Form>
     </Modal>

@@ -61,7 +61,7 @@ export default function HeaderRenameInput({
         onChange={(e) => setEditName(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={isSaving}
-        className="flex-1 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#ADBC9F]/50 transition-all"
+        className="flex-1 bg-gray-50 dark:bg-[#12372A]/50 border border-gray-200 dark:border-[#ADBC9F]/30 rounded px-2 py-1 text-sm font-semibold text-[#12372A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ADBC9F]/50 transition-all"
         placeholder="Channel name..."
       />
       <Button
@@ -69,7 +69,7 @@ export default function HeaderRenameInput({
         variant="ghost"
         onClick={handleRename}
         disabled={isSaving}
-        className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+        className="h-8 w-8 text-[#12372A] dark:text-[#ADBC9F] hover:bg-[#ADBC9F]/20"
       >
         <Check className="h-4 w-4" />
       </Button>
@@ -78,7 +78,7 @@ export default function HeaderRenameInput({
         variant="ghost"
         onClick={onCancel}
         disabled={isSaving}
-        className="h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+        className="h-8 w-8 text-gray-400 hover:text-[#12372A] dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10"
       >
         <X className="h-4 w-4" />
       </Button>

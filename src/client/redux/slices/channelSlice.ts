@@ -331,7 +331,9 @@ const ChannelSlice = createSlice({
       .addCase(joinChannelAsync.fulfilled, (state, action) => {
         state.loading = false;
         // Check if channel already exists in list to avoid duplicates
-        const channel = action.payload.data.channel;
+        const channel = action.payload.data?.channel;
+        if (!channel) return;
+
         const exists = state.channels.some((c) => c.id === channel.id);
         if (!exists) {
           state.channels.push(channel);

@@ -58,13 +58,15 @@ function MessageHeader({
 }) {
   return (
     <div className="flex items-center gap-2 mb-1 flex-wrap">
-      <span className="font-semibold text-[#12372A] text-sm">{authorName}</span>
+      <span className="font-semibold text-[#12372A] dark:text-white text-sm">
+        {authorName}
+      </span>
       {isCurrentUser && (
-        <span className="text-[10px] sm:text-xs bg-[#ADBC9F]/20 text-[#12372A] px-1.5 sm:px-2 py-0.5 rounded-full font-medium">
+        <span className="text-[10px] sm:text-xs bg-[#ADBC9F]/20 dark:bg-[#ADBC9F]/30 text-[#12372A] dark:text-white px-1.5 sm:px-2 py-0.5 rounded-full font-medium">
           You
         </span>
       )}
-      <span className="text-[10px] sm:text-xs text-gray-400">
+      <span className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-400">
         {new Date(timestamp).toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
@@ -148,7 +150,7 @@ export default function MessageItem({
   return (
     <div
       id={`message-${message.id}`}
-      className={`group relative px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-[#ADBC9F]/5 transition-colors duration-150 rounded-lg ${isDeleting ? "opacity-50 grayscale pointer-events-none" : ""}`}
+      className={`group relative px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-[#ADBC9F]/5 dark:hover:bg-white/5 transition-colors duration-150 rounded-lg ${isDeleting ? "opacity-50 grayscale pointer-events-none" : ""}`}
     >
       <div className="flex gap-3 sm:gap-4">
         <MessageAvatar name={message.authorName} />
@@ -167,7 +169,7 @@ export default function MessageItem({
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full bg-white border border-[#ADBC9F]/30 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#ADBC9F]/50 resize-none min-h-[60px]"
+                className="w-full bg-white dark:bg-[#12372A]/50 border border-[#ADBC9F]/30 dark:border-[#ADBC9F]/30 rounded-md p-2 text-sm text-[#12372A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ADBC9F]/50 resize-none min-h-[60px]"
               />
               <div className="flex justify-end gap-2">
                 <Button
@@ -191,7 +193,7 @@ export default function MessageItem({
             </div>
           ) : (
             <p
-              className="text-sm text-gray-700 leading-relaxed break-words"
+              className="text-sm text-gray-700 dark:text-white/90 leading-relaxed break-words"
               dangerouslySetInnerHTML={{ __html: sanitizedContent }}
             />
           )}
@@ -210,7 +212,10 @@ export default function MessageItem({
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent
+                align="end"
+                className="w-48 dark:bg-[#12372A] dark:border-[#ADBC9F]/20 dark:text-white"
+              >
                 {isCurrentUser && (
                   <>
                     <DropdownMenuItem

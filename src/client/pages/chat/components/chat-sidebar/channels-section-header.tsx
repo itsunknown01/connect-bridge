@@ -8,7 +8,7 @@ export default function ChannelsSectionHeader() {
   const dispatch = useAppDispatch();
   return (
     <div className="py-2 flex items-center justify-between">
-      <SidebarGroupLabel className="text-sm font-semibold text-[#12372A]">
+      <SidebarGroupLabel className="text-sm font-semibold text-[#12372A] dark:text-white">
         Channels
       </SidebarGroupLabel>
       <Button

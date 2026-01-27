@@ -54,7 +54,7 @@ export default function MessageInput({
   };
 
   return (
-    <footer className="border-t border-gray-200 bg-white safe-area-bottom">
+    <div className="p-4 border-t border-[#ADBC9F]/20 dark:border-[#ADBC9F]/20 bg-white/80 dark:bg-gradient-to-r dark:from-[#12372A] dark:to-[#0d2a1f]/90 backdrop-blur-md safe-area-bottom">
       <div className="px-3 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Input Area */}
@@ -75,7 +75,7 @@ export default function MessageInput({
                   handleSend();
                 }
               }}
-              className="pr-12 py-2.5 sm:py-3 bg-gray-50 border border-gray-200 rounded-full text-sm placeholder:text-gray-400 focus:bg-white focus:border-[#ADBC9F] focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="min-h-[44px] max-h-32 py-3 bg-[#ADBC9F]/10 dark:bg-[#12372A]/50 border border-transparent dark:border-[#ADBC9F]/30 focus-visible:ring-0 focus-visible:ring-offset-0 text-[#12372A] dark:text-white placeholder:text-[#12372A]/40 dark:placeholder:text-white/40 resize-none rounded-xl focus:dark:bg-[#12372A]/70 transition-colors"
               aria-label="Message input"
             />
 
@@ -85,7 +85,7 @@ export default function MessageInput({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 w-7 sm:h-8 sm:w-8 text-gray-400 hover:text-[#12372A] hover:bg-transparent"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 w-7 sm:h-8 sm:w-8 text-[#12372A]/40 dark:text-white/40 hover:text-[#12372A] dark:hover:text-white hover:bg-[#ADBC9F]/20 dark:hover:bg-white/10"
                   aria-label="Add emoji"
                 >
                   <Smile className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -113,13 +113,13 @@ export default function MessageInput({
             disabled={!canSend}
             onClick={handleSend}
             size="icon"
-            className="flex-shrink-0 h-10 w-10 sm:h-11 sm:w-11 bg-[#12372A] hover:bg-[#12372A]/90 text-white rounded-full shadow-md disabled:opacity-40 disabled:shadow-none transition-all"
+            className="flex-shrink-0 h-10 w-10 sm:h-11 sm:w-11 bg-[#12372A] dark:bg-[#ADBC9F] hover:bg-[#12372A]/90 dark:hover:bg-[#ADBC9F]/90 text-white dark:text-[#12372A] rounded-full shadow-md disabled:opacity-40 disabled:shadow-none transition-all"
             aria-label="Send message"
           >
             <Send className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         </div>
       </div>
-    </footer>
+    </div>
   );
 }

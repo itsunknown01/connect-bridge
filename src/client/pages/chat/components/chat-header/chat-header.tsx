@@ -43,26 +43,15 @@ export default function ChatHeader({
     return <LoadingState />;
   }
 
-  if (isSearchActive) {
-    return (
-      <div className="border-b border-gray-200 bg-white px-4 sm:px-6 py-2">
-        <SearchBar
-          channelId={String(currentChannel.id)}
-          onClose={() => setIsSearchActive(false)}
-        />
-      </div>
-    );
-  }
-
   return (
-    <header className="border-b border-gray-200 bg-white sticky top-0 z-10">
+    <header className="border-b border-[#ADBC9F]/20 dark:border-[#ADBC9F]/20 bg-white/80 dark:bg-gradient-to-r dark:from-[#12372A] dark:to-[#0d2a1f]/90 backdrop-blur-md sticky top-0 z-10 transition-colors">
       <div className="flex items-center justify-between px-3 sm:px-6 py-2 sm:py-3">
         {/* Left Section - Identity & Settings */}
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <SidebarTrigger className="-ml-1 flex-shrink-0" />
           <Separator
             orientation="vertical"
-            className="h-5 sm:h-6 bg-gray-200 hidden sm:block"
+            className="h-5 sm:h-6 bg-[#ADBC9F]/30 dark:bg-white/20 hidden sm:block"
           />
 
           {isEditing ? (
@@ -81,21 +70,29 @@ export default function ChatHeader({
         {/* Right Section - Utilities & Actions */}
         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           {/* Search Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 sm:h-9 sm:w-9 text-gray-500 hover:text-[#12372A] hover:bg-[#ADBC9F]/10"
-            onClick={() => setIsSearchActive(true)}
-            aria-label="Search messages"
-          >
-            <Search className="h-4 w-4 sm:h-5 sm:w-5" />
-          </Button>
-
+          {isSearchActive ? (
+            <div className="px-4 sm:px-6">
+              <SearchBar
+                channelId={String(currentChannel.id)}
+                onClose={() => setIsSearchActive(false)}
+              />
+            </div>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 sm:h-9 sm:w-9 text-[#12372A]/60 dark:text-white/60 hover:text-[#12372A] dark:hover:text-white hover:bg-[#ADBC9F]/10 dark:hover:bg-white/10"
+              onClick={() => setIsSearchActive(true)}
+              aria-label="Search messages"
+            >
+              <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Button>
+          )}
           {/* Panel Controls (Mobile) */}
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 sm:h-9 sm:w-9 text-gray-500 hover:text-[#12372A] hover:bg-[#ADBC9F]/10 md:hidden"
+            className="h-8 w-8 sm:h-9 sm:w-9 text-[#12372A]/60 dark:text-white/60 hover:text-[#12372A] dark:hover:text-white hover:bg-[#ADBC9F]/10 dark:hover:bg-white/10 md:hidden"
             onClick={onOpenMobilePanel}
             aria-label="Open panel"
           >
@@ -108,8 +105,8 @@ export default function ChatHeader({
             size="icon"
             className={`h-8 w-8 sm:h-9 sm:w-9 hidden md:flex ${
               isRightPanelOpen
-                ? "text-[#12372A] bg-[#ADBC9F]/10"
-                : "text-gray-500 hover:text-[#12372A] hover:bg-[#ADBC9F]/10"
+                ? "text-[#12372A] dark:text-white bg-[#ADBC9F]/10 dark:bg-white/10"
+                : "text-[#12372A]/60 dark:text-white/60 hover:text-[#12372A] dark:hover:text-white hover:bg-[#ADBC9F]/10 dark:hover:bg-white/10"
             }`}
             onClick={onToggleRightPanel}
             aria-label={isRightPanelOpen ? "Close panel" : "Open panel"}

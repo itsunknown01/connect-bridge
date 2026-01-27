@@ -27,7 +27,7 @@ export default function ChatSidebar({
   onSelectChannel,
 }: ChatSidebarProps) {
   return (
-    <div className="flex flex-col h-full bg-[#12372A]/5 backdrop-blur-sm">
+    <div className="flex flex-col h-full bg-[#12372A]/5 dark:bg-gradient-to-b dark:from-[#12372A] dark:to-[#0d2a1f] backdrop-blur-sm border-r border-[#ADBC9F]/20 dark:border-[#ADBC9F]/20">
       <SidebarHeader>
         <WorkspaceHeader />
       </SidebarHeader>
@@ -35,7 +35,7 @@ export default function ChatSidebar({
       <SidebarContent className="p-0 overflow-hidden">
         <SidebarGroup className="h-full flex flex-col">
           <ChannelsSectionHeader />
-          <SidebarMenu className="flex-1 min-h-0 px-2 mt-2">
+          <SidebarMenu className="flex-1 min-h-0 mt-2">
             <VList className="h-full w-full scrollbar-thin overflow-y-auto">
               {channels.map((channel) => (
                 <div key={channel.id} className="mb-1 uppercase">

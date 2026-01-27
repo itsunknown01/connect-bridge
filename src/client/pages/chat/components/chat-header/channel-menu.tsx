@@ -43,7 +43,10 @@ export default function ChannelMenu({
           <MoreVertical className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 p-1">
+      <DropdownMenuContent
+        align="end"
+        className="w-56 p-1 dark:bg-[#12372A] dark:border-[#ADBC9F]/20 dark:text-white"
+      >
         <DropdownMenuItem onClick={onSettingsClick} className="gap-2">
           <Settings className="h-4 w-4" />
           Channel Settings

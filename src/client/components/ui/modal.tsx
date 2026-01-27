@@ -14,6 +14,7 @@ interface ModalProps {
   children: React.ReactNode;
   onClose: () => void;
   footer?: React.ReactNode;
+  className?: string;
 }
 
 export const Modal = ({
@@ -23,6 +24,7 @@ export const Modal = ({
   children,
   onClose,
   footer,
+  className,
 }: ModalProps) => {
   const onOpenChange = (open: boolean) => {
     if (!open) {
@@ -32,9 +34,11 @@ export const Modal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className={className ? className : "sm:max-w-[425px]"}>
         <DialogHeader>
-          <DialogTitle className="text-[#12372A]">{title}</DialogTitle>
+          <DialogTitle className="text-[#12372A] dark:text-[#ADBC9F]">
+            {title}
+          </DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         {children}

@@ -1,22 +1,24 @@
+"use client";
+
 import * as React from "react";
-import { cn } from "../../lib/utils";
+import * as LabelPrimitive from "@radix-ui/react-label";
 
-const labelVariants = {
-  base: "text-sm font-medium leading-none",
-  disabled: "peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-};
+import { cn } from "@/src/client/lib/utils";
 
-export interface LabelProps
-  extends React.LabelHTMLAttributes<HTMLLabelElement> {
-  variant?: keyof typeof labelVariants;
+function Label({
+  className,
+  ...props
+}: React.ComponentProps<typeof LabelPrimitive.Root>) {
+  return (
+    <LabelPrimitive.Root
+      data-slot="label"
+      className={cn(
+        "flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
-
-const Label: React.ForwardRefExoticComponent<
-  LabelProps & React.RefAttributes<HTMLLabelElement>
-> = React.forwardRef(({ className, variant = "base", ...props }, ref) => (
-  <label ref={ref} className={cn(labelVariants[variant])} {...props} />
-));
-
-Label.displayName = "Label";
 
 export { Label };

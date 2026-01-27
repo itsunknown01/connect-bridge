@@ -19,8 +19,8 @@ export function OutcomeItem({
     <button
       className={`relative group w-full text-left p-3 rounded-lg border transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ${
         isDecision
-          ? "bg-amber-50/50 border-amber-100 hover:bg-amber-50 hover:border-amber-200 focus-visible:ring-amber-400"
-          : "bg-blue-50/50 border-blue-100 hover:bg-blue-50 hover:border-blue-200 focus-visible:ring-blue-400"
+          ? "bg-amber-50/50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20 hover:bg-amber-50 dark:hover:bg-amber-500/20 hover:border-amber-200 dark:hover:border-amber-500/30 focus-visible:ring-amber-400"
+          : "bg-blue-50/50 dark:bg-blue-500/10 border-blue-100 dark:border-blue-500/20 hover:bg-blue-50 dark:hover:bg-blue-500/20 hover:border-blue-200 dark:hover:border-blue-500/30 focus-visible:ring-blue-400"
       }`}
       onClick={() => onJumpToMessage(outcome.messageId)}
     >
@@ -29,8 +29,8 @@ export function OutcomeItem({
         <div
           className={`flex-shrink-0 mt-0.5 p-1.5 rounded-lg ${
             isDecision
-              ? "bg-amber-100 text-amber-600"
-              : "bg-blue-100 text-blue-600"
+              ? "bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400"
+              : "bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400"
           }`}
         >
           {isDecision ? (
@@ -45,17 +45,19 @@ export function OutcomeItem({
           <div className="flex items-center justify-between gap-2 mb-1">
             <span
               className={`text-[10px] font-bold uppercase tracking-wider ${
-                isDecision ? "text-amber-600" : "text-blue-600"
+                isDecision
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-blue-600 dark:text-blue-400"
               }`}
             >
               {outcome.type}
             </span>
-            <span className="text-[10px] text-gray-400">
+            <span className="text-[10px] text-gray-400 dark:text-gray-400">
               {new Date(outcome.createdAt).toLocaleDateString()}
             </span>
           </div>
 
-          <p className="text-[13px] text-gray-700 font-medium line-clamp-3 mb-2.5 leading-relaxed">
+          <p className="text-[13px] text-gray-700 dark:text-white/90 font-medium line-clamp-3 mb-2.5 leading-relaxed">
             {outcome.content}
           </p>
 

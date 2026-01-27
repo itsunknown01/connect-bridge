@@ -1,9 +1,13 @@
+/**
+ * Register Form Component
+ * Handles new user registration
+ */
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import * as z from "zod";
 import { CheckCircle2, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { useAppDispatch, useAppSelector } from "@/src/client/hooks";
 import { registerUserAsync } from "@/src/client/redux/slices/authSlice";
@@ -49,6 +53,11 @@ const RegisterForm = ({
     }
   };
 
+  // Common input styles
+  const inputStyles =
+    "pl-10 sm:pl-12 py-3 sm:py-3.5 bg-[#ADBC9F]/10 dark:bg-white/10 border-2 border-transparent rounded-xl text-sm sm:text-base text-[#12372A] dark:text-white placeholder:text-[#12372A]/40 dark:placeholder:text-white/40 focus:bg-white dark:focus:bg-white/5 focus:border-[#ADBC9F] focus-visible:ring-0 focus-visible:ring-offset-0";
+  const passwordInputStyles = `${inputStyles} pr-12`;
+
   return (
     <Form {...form}>
       <form
@@ -61,7 +70,7 @@ const RegisterForm = ({
             name="email"
             render={({ field }) => (
               <FormItem className="sm:w-1/2">
-                <FormLabel className="text-sm font-semibold text-[#12372A]">
+                <FormLabel className="text-sm font-semibold text-[#12372A] dark:text-white">
                   Email
                 </FormLabel>
                 <FormControl>
@@ -72,7 +81,7 @@ const RegisterForm = ({
                       type="email"
                       placeholder="your@email.com"
                       disabled={loading}
-                      className="pl-10 sm:pl-12 py-3 sm:py-3.5 bg-[#ADBC9F]/10 border-2 border-transparent rounded-xl text-sm sm:text-base focus:bg-white focus:border-[#ADBC9F] focus-visible:ring-0 focus-visible:ring-offset-0"
+                      className={inputStyles}
                     />
                   </div>
                 </FormControl>
@@ -85,7 +94,7 @@ const RegisterForm = ({
             name="name"
             render={({ field }) => (
               <FormItem className="sm:w-1/2">
-                <FormLabel className="text-sm font-semibold text-[#12372A]">
+                <FormLabel className="text-sm font-semibold text-[#12372A] dark:text-white">
                   Full Name
                 </FormLabel>
                 <FormControl>
@@ -96,7 +105,7 @@ const RegisterForm = ({
                       type="text"
                       placeholder="John Doe"
                       disabled={loading}
-                      className="pl-10 sm:pl-12 py-3 sm:py-3.5 bg-[#ADBC9F]/10 border-2 border-transparent rounded-xl text-sm sm:text-base focus:bg-white focus:border-[#ADBC9F] focus-visible:ring-0 focus-visible:ring-offset-0"
+                      className={inputStyles}
                     />
                   </div>
                 </FormControl>
@@ -110,7 +119,7 @@ const RegisterForm = ({
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-semibold text-[#12372A]">
+              <FormLabel className="text-sm font-semibold text-[#12372A] dark:text-white">
                 Password
               </FormLabel>
               <FormControl>
@@ -121,14 +130,14 @@ const RegisterForm = ({
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     disabled={loading}
-                    className="pl-10 sm:pl-12 pr-12 py-3 sm:py-3.5 bg-[#ADBC9F]/10 border-2 border-transparent rounded-xl text-sm sm:text-base focus:bg-white focus:border-[#ADBC9F] focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className={passwordInputStyles}
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 text-[#ADBC9F] hover:text-[#12372A] hover:bg-transparent"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 text-[#ADBC9F] hover:text-[#12372A] dark:hover:text-white hover:bg-transparent"
                     disabled={loading}
                     aria-label={
                       showPassword ? "Hide password" : "Show password"
@@ -151,7 +160,7 @@ const RegisterForm = ({
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-semibold text-[#12372A]">
+              <FormLabel className="text-sm font-semibold text-[#12372A] dark:text-white">
                 Confirm Password
               </FormLabel>
               <FormControl>
@@ -162,14 +171,14 @@ const RegisterForm = ({
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="••••••••"
                     disabled={loading}
-                    className="pl-10 sm:pl-12 pr-12 py-3 sm:py-3.5 bg-[#ADBC9F]/10 border-2 border-transparent rounded-xl text-sm sm:text-base focus:bg-white focus:border-[#ADBC9F] focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className={passwordInputStyles}
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 text-[#ADBC9F] hover:text-[#12372A] hover:bg-transparent"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 text-[#ADBC9F] hover:text-[#12372A] dark:hover:text-white hover:bg-transparent"
                     disabled={loading}
                     aria-label={
                       showConfirmPassword ? "Hide password" : "Show password"
@@ -189,11 +198,11 @@ const RegisterForm = ({
         />
         <Button
           disabled={loading}
-          className="w-full bg-[#12372A] hover:bg-[#12372A]/90 text-white py-3 sm:py-3.5 rounded-xl font-semibold text-sm sm:text-base mt-6 sm:mt-8 shadow-lg hover:shadow-xl"
+          className="w-full bg-[#12372A] hover:bg-[#12372A]/90 text-white dark:bg-white dark:text-[#12372A] dark:hover:bg-white/90 py-3 sm:py-3.5 rounded-xl font-semibold text-sm sm:text-base mt-6 sm:mt-8 shadow-lg hover:shadow-xl transition-all"
         >
           {loading ? (
             <>
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+              <div className="w-5 h-5 border-2 border-white/30 dark:border-[#12372A]/30 border-t-white dark:border-t-[#12372A] rounded-full animate-spin mr-2"></div>
               Processing...
             </>
           ) : (

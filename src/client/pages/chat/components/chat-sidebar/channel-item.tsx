@@ -18,17 +18,19 @@ export default function ChannelItem({
 }: ChannelItemProps) {
   const baseClasses =
     "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all";
-  const selectedClasses = "!bg-[#12372A] !text-white font-semibold";
+  const selectedClasses =
+    "!bg-[#12372A] dark:!bg-[#ADBC9F] !text-white dark:!text-[#12372A] font-semibold";
   const defaultClasses =
-    "text-gray-700 !hover:bg-[#ADBC9F]/10 !hover:text-[#12372A]";
+    "text-[#12372A] dark:text-white/80 !hover:bg-[#12372A]/5 dark:!hover:bg-white/5 !hover:text-[#12372A] dark:!hover:text-white";
 
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
         onClick={() => onSelect(String(channel.id))}
         isActive={isSelected}
-        className={`${baseClasses} ${isSelected ? selectedClasses : defaultClasses
-          }`}
+        className={`${baseClasses} ${
+          isSelected ? selectedClasses : defaultClasses
+        }`}
         aria-current={isSelected ? "page" : undefined}
       >
         <Hash className="h-4 w-4 flex-shrink-0" aria-hidden="true" />

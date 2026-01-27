@@ -1,20 +1,28 @@
 import { Button } from "../ui";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogFooter,
+// } from "../ui/dialog";
 import { Modal } from "../ui/modal";
-import { DialogFooter } from "../ui/dialog";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { onClose } from "../../redux/slices/modalSlice";
 import { RootState } from "../../redux/store";
 import { AlertTriangle } from "lucide-react";
 import { leaveChannelAsync } from "../../redux/slices/channelSlice";
+import { useNavigate } from "react-router-dom";
 
 export default function LeaveChannelModal() {
   const dispatch = useAppDispatch();
-  const { currentChannel, loading } = useAppSelector(
+  const { currentChannel, loading, channels } = useAppSelector(
     (state: RootState) => state.channelReducer,
   );
   const { isOpen, type } = useAppSelector(
     (state: RootState) => state.modalReducer,
   );
+  const navigate = useNavigate();
 
   const isModalOpen = isOpen && type === "leaveChannel";
 
@@ -27,6 +35,7 @@ export default function LeaveChannelModal() {
 
     if (leaveChannelAsync.fulfilled.match(result)) {
       handleClose();
+      navigate("/chats");
     }
   };
 
@@ -36,19 +45,19 @@ export default function LeaveChannelModal() {
     <Modal
       isOpen={isModalOpen}
       title="Leave Channel"
-      description=""
       onClose={handleClose}
+      className="sm:max-w-[425px] dark:bg-gradient-to-b dark:from-[#12372A] dark:to-[#0d2a1f] dark:border-[#ADBC9F]/20 dark:text-white"
     >
       <div className="space-y-4 py-4">
-        <div className="flex items-start gap-3 p-4 bg-red-50 rounded-lg border border-red-100">
-          <div className="p-2 bg-red-100 rounded-full flex-shrink-0">
-            <AlertTriangle className="h-5 w-5 text-red-600" />
+        <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-100 dark:border-red-900/30">
+          <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full flex-shrink-0">
+            <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
           </div>
           <div>
-            <p className="text-sm font-medium text-red-900">
+            <p className="text-sm font-medium text-red-900 dark:text-red-300">
               Are you sure you want to leave?
             </p>
-            <p className="text-xs text-red-700 mt-1">
+            <p className="text-xs text-red-700 dark:text-red-400/80 mt-1">
               You will lose access to <strong>#{currentChannel.name}</strong>{" "}
               and its message history. You can rejoin later if you have an
               invite link.
@@ -57,7 +66,7 @@ export default function LeaveChannelModal() {
         </div>
       </div>
 
-      <DialogFooter className="flex gap-2">
+      <div className="flex gap-2 justify-end">
         <Button variant="outline" onClick={handleClose} disabled={loading}>
           Cancel
         </Button>
@@ -69,7 +78,7 @@ export default function LeaveChannelModal() {
         >
           {loading ? "Leaving..." : "Leave Channel"}
         </Button>
-      </DialogFooter>
+      </div>
     </Modal>
   );
 }

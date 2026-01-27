@@ -68,22 +68,22 @@ function MemberInfo({
   return (
     <div className="flex-1 min-w-0 text-left">
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-gray-900 truncate">
+        <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
           {member.name}
         </span>
         {isCurrentUser && (
-          <span className="text-[10px] bg-[#ADBC9F]/20 text-[#12372A] px-1.5 py-0.5 rounded font-medium">
+          <span className="text-[10px] bg-[#ADBC9F]/20 text-[#12372A] dark:text-white px-1.5 py-0.5 rounded font-medium">
             You
           </span>
         )}
         {isChannelOnline && !isCurrentUser && (
-          <span className="text-[10px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded-full border border-green-100 font-medium">
+          <span className="text-[10px] bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded-full border border-green-100 dark:border-green-500/20 font-medium">
             Active Here
           </span>
         )}
       </div>
       {member.role && (
-        <span className="text-xs text-gray-500 truncate block">
+        <span className="text-xs text-gray-500 dark:text-white/60 truncate block">
           {member.role}
         </span>
       )}
@@ -111,7 +111,7 @@ export default function MemberItem({
 
   return (
     <div
-      className={`w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[#ADBC9F]/10 transition-colors group cursor-default ${isRemoving ? "opacity-50 pointer-events-none" : ""}`}
+      className={`w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[#ADBC9F]/10 dark:hover:bg-white/5 transition-colors group cursor-default ${isRemoving ? "opacity-50 pointer-events-none" : ""}`}
       aria-label={`Member ${member.name}`}
     >
       <MemberAvatar
@@ -130,7 +130,7 @@ export default function MemberItem({
           size="icon"
           variant="ghost"
           onClick={handleKick}
-          className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="h-8 w-8 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 opacity-0 group-hover:opacity-100 transition-opacity"
           aria-label={`Remove ${member.name}`}
         >
           <UserMinus className="h-4 w-4" />

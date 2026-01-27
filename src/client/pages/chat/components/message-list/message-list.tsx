@@ -16,13 +16,13 @@ interface MessageListProps {
 function EmptyState() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
-      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-        <MessageSquare className="w-8 h-8 text-gray-400" />
+      <div className="w-16 h-16 bg-[#ADBC9F]/20 dark:bg-white/10 rounded-full flex items-center justify-center mb-4">
+        <MessageSquare className="w-8 h-8 text-[#12372A]/40 dark:text-white/40" />
       </div>
-      <h3 className="text-sm font-medium text-gray-900 mb-1">
+      <h3 className="text-sm font-medium text-[#12372A] dark:text-white mb-1">
         No channel selected
       </h3>
-      <p className="text-xs text-gray-500 max-w-[200px]">
+      <p className="text-xs text-[#12372A]/60 dark:text-white/60 max-w-[200px]">
         Select a channel from the sidebar to start chatting
       </p>
     </div>
@@ -32,8 +32,10 @@ function EmptyState() {
 function LoadingState() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-3">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#ADBC9F] border-t-transparent" />
-      <span className="text-xs text-gray-400">Loading messages...</span>
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#ADBC9F] dark:border-white border-t-transparent dark:border-t-transparent" />
+      <span className="text-xs text-[#12372A]/50 dark:text-white/50">
+        Loading messages...
+      </span>
     </div>
   );
 }
@@ -127,7 +129,7 @@ const MessageList = ({ channelId, currentChannel }: MessageListProps) => {
   }
 
   return (
-    <div className="flex-1 min-h-0 w-full bg-white/50 backdrop-blur-sm">
+    <div className="flex-1 min-h-0 w-full bg-transparent">
       <VList
         ref={vListRef}
         onScroll={handleScroll}
@@ -138,7 +140,7 @@ const MessageList = ({ channelId, currentChannel }: MessageListProps) => {
             {loadingMore ? (
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#ADBC9F] border-t-transparent" />
             ) : (
-              <span className="text-[10px] text-gray-400">
+              <span className="text-[10px] text-[#12372A]/40 dark:text-white/40">
                 Scroll up to load history
               </span>
             )}

@@ -30,10 +30,12 @@ import RightPanel from "./components/right-panel";
 
 function LoadingSpinner() {
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-gradient-to-br from-[#ADBC9F]/30 to-white">
+    <div className="h-screen w-screen flex items-center justify-center bg-gradient-to-br from-[#ADBC9F]/30 to-white dark:from-[#12372A] dark:via-[#0d2a1f] dark:to-[#ADBC9F]/20">
       <div className="flex flex-col items-center gap-3 w-full">
-        <div className="h-10 w-10 animate-spin rounded-full border-3 border-[#ADBC9F] border-t-transparent" />
-        <span className="text-sm text-gray-500">Loading channels...</span>
+        <div className="h-10 w-10 animate-spin rounded-full border-3 border-[#ADBC9F] border-t-transparent dark:border-white dark:border-t-transparent" />
+        <span className="text-sm text-[#12372A]/70 dark:text-white/70">
+          Loading channels...
+        </span>
       </div>
     </div>
   );
@@ -68,10 +70,10 @@ export default function Chat() {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen h-[100dvh] bg-gradient-to-br from-[#ADBC9F]/20 to-white w-full overflow-hidden">
+      <div className="flex h-screen h-[100dvh] bg-gradient-to-br from-[#ADBC9F]/20 to-white dark:from-[#12372A] dark:via-[#12372A] dark:to-[#ADBC9F]/10 w-full overflow-hidden">
         {/* Left Sidebar */}
         <Sidebar
-          className="bg-white border-r border-gray-200 flex flex-col shadow-sm"
+          className="bg-transparent border-none flex flex-col shadow-sm"
           collapsible="icon"
         >
           <ChatSidebar
@@ -82,7 +84,7 @@ export default function Chat() {
         </Sidebar>
 
         {/* Main Chat Area */}
-        <SidebarInset className="flex-1 flex flex-col bg-white min-w-0">
+        <SidebarInset className="flex-1 flex flex-col bg-transparent min-w-0">
           <ChatHeader
             currentChannel={selectedChannel}
             onToggleRightPanel={() => setShowRightPanel(!showRightPanel)}
@@ -105,7 +107,10 @@ export default function Chat() {
 
         {/* Right Panel - Mobile Sheet */}
         <Sheet open={showMobilePanel} onOpenChange={setShowMobilePanel}>
-          <SheetContent side="right" className="w-full sm:w-80 p-0">
+          <SheetContent
+            side="right"
+            className="w-full sm:w-80 p-0 dark:bg-[#12372A] dark:border-white/10"
+          >
             <SheetHeader className="sr-only">
               <SheetTitle>Channel Panel</SheetTitle>
             </SheetHeader>

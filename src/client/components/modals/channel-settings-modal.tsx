@@ -9,16 +9,23 @@ import {
   FormMessage,
   Input,
 } from "../ui";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogDescription,
+//   DialogFooter,
+//   DialogHeader,
+//   DialogTitle,
+// } from "../ui/dialog";
 import { Modal } from "../ui/modal";
-import { z } from "zod";
-import { ChannelsSchema } from "@/src/schemas";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { DialogFooter } from "../ui/dialog";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { onClose } from "../../redux/slices/modalSlice";
 import { updateChannel } from "../../redux/slices/channelSlice";
 import { RootState } from "../../redux/store";
 import { useEffect } from "react";
+import { ChannelsSchema } from "@/src/schemas";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function ChannelSettingsModal() {
   const dispatch = useAppDispatch();
@@ -71,6 +78,7 @@ export default function ChannelSettingsModal() {
       title="Channel Settings"
       description="Update channel name and settings"
       onClose={handleClose}
+      className="sm:max-w-[425px] dark:bg-gradient-to-b dark:from-[#12372A] dark:to-[#0d2a1f] dark:border-[#ADBC9F]/20 dark:text-white"
     >
       <Form {...form}>
         <form
@@ -88,6 +96,7 @@ export default function ChannelSettingsModal() {
                     placeholder="e.g., project-alpha"
                     type="text"
                     disabled={loading}
+                    className="dark:bg-white/5 dark:border-white/10 dark:text-white"
                     {...field}
                   />
                 </FormControl>
@@ -95,18 +104,18 @@ export default function ChannelSettingsModal() {
               </FormItem>
             )}
           />
-          <DialogFooter className="flex gap-2 justify-end pt-4">
+          <div className="flex gap-2 justify-end pt-4">
             <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-[#12372A] hover:bg-[#12372A]/90 text-white"
+              className="bg-[#12372A] hover:bg-[#12372A]/90 text-white dark:bg-[#ADBC9F] dark:text-[#12372A] dark:hover:bg-[#ADBC9F]/90 transition-colors"
               disabled={loading}
             >
               {loading ? "Saving..." : "Save Changes"}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </Form>
     </Modal>

@@ -12,13 +12,13 @@ interface OutcomesPanelProps {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center h-full text-center px-6 py-12">
-      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-        <ClipboardList className="w-8 h-8 text-gray-400" />
+      <div className="w-16 h-16 bg-gray-100 dark:bg-white/10 rounded-full flex items-center justify-center mb-4">
+        <ClipboardList className="w-8 h-8 text-gray-400 dark:text-white/60" />
       </div>
-      <h3 className="text-sm font-medium text-gray-900 mb-1">
+      <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
         No outcomes yet
       </h3>
-      <p className="text-xs text-gray-500 max-w-[200px]">
+      <p className="text-xs text-gray-500 dark:text-white/70 max-w-[200px]">
         Decisions and actions you create from messages will appear here
       </p>
     </div>
@@ -35,7 +35,7 @@ export default function OutcomesPanel({ channelId }: OutcomesPanelProps) {
 
   if (!channelId) {
     return (
-      <div className="flex items-center justify-center h-full text-sm text-gray-500 px-4 text-center">
+      <div className="flex items-center justify-center h-full text-sm text-gray-500 dark:text-white/50 px-4 text-center">
         Select a channel to view outcomes
       </div>
     );

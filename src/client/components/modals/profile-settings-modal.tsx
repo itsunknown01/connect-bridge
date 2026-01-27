@@ -9,12 +9,19 @@ import {
   FormMessage,
   Input,
 } from "../ui";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogDescription,
+//   DialogFooter,
+//   DialogHeader,
+//   DialogTitle,
+// } from "../ui/dialog";
 import { Modal } from "../ui/modal";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { onClose } from "../../redux/slices/modalSlice";
-import { DialogFooter } from "../ui/dialog";
 import { useEffect } from "react";
 import { updateUserProfileAsync } from "../../redux/slices/authSlice";
 import { ProfileSchema } from "@/src/schemas";
@@ -56,10 +63,11 @@ export default function ProfileSettingsModal() {
 
   return (
     <Modal
+      isOpen={isModalOpen}
       title="Profile Settings"
       description="Update your personal information and preferences"
-      isOpen={isModalOpen}
       onClose={handleClose}
+      className="sm:max-w-[425px] dark:bg-gradient-to-b dark:from-[#12372A] dark:to-[#0d2a1f] dark:border-[#ADBC9F]/20 dark:text-white"
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -89,18 +97,18 @@ export default function ProfileSettingsModal() {
               </FormItem>
             )}
           />
-          <DialogFooter className="flex gap-2 justify-end py-2">
+          <div className="flex gap-2 justify-end py-2">
             <Button variant="outline" onClick={handleClose} type="button">
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-[#12372A] hover:bg-[#12372A]/90 text-white"
+              className="bg-[#12372A] hover:bg-[#12372A]/90 text-white dark:bg-[#ADBC9F] dark:text-[#12372A] dark:hover:bg-[#ADBC9F]/90 transition-colors"
               disabled={loading}
             >
               {loading ? "Saving...." : "Save Changes"}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </Form>
     </Modal>

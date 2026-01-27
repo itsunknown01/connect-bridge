@@ -18,11 +18,11 @@ type MemberListItem =
 
 function PanelHeader() {
   return (
-    <div className="px-6 py-4 border-b border-gray-200 bg-white">
-      <h2 className="text-lg font-semibold text-gray-900 pb-1 text-[#12372A]">
+    <div className="px-6 py-4 border-b border-gray-200 dark:border-[#ADBC9F]/20 bg-white dark:bg-transparent">
+      <h2 className="text-lg font-semibold text-[#12372A] dark:text-white pb-1">
         Members
       </h2>
-      <p className="text-sm text-gray-500 mt-0.5">
+      <p className="text-sm text-gray-500 dark:text-white/60 mt-0.5">
         Channel participants and their status
       </p>
     </div>
@@ -105,8 +105,10 @@ const MembersPanel = memo(function MembersPanel({
       <div className="h-full flex flex-col">
         <PanelHeader />
         <div className="flex-1 flex flex-col items-center justify-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#ADBC9F] border-t-transparent" />
-          <span className="text-xs text-gray-400">Loading members...</span>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#ADBC9F] dark:border-white border-t-transparent" />
+          <span className="text-xs text-gray-400 dark:text-white/50">
+            Loading members...
+          </span>
         </div>
       </div>
     );
@@ -123,7 +125,7 @@ const MembersPanel = memo(function MembersPanel({
   return (
     <div className="h-full flex flex-col">
       <PanelHeader />
-      <div className="flex-1 min-h-0 bg-white/50">
+      <div className="flex-1 min-h-0 bg-white/50 dark:bg-transparent">
         {flattenedItems.length > 0 ? (
           <VList className="h-full w-full scrollbar-thin overflow-y-auto px-4 mt-2">
             {flattenedItems.map((item, index) => {
@@ -131,7 +133,7 @@ const MembersPanel = memo(function MembersPanel({
                 return (
                   <h3
                     key={`header-${index}`}
-                    className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-4 px-2"
+                    className="text-xs font-semibold text-gray-500 dark:text-white/60 uppercase tracking-wider mb-2 mt-4 px-2"
                   >
                     {item.label}
                   </h3>
