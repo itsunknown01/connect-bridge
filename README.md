@@ -1,67 +1,73 @@
-# CompuPay
+# Connect-Bridge
 
-CompuPay is an **AI-powered payroll intelligence platform** designed to help businesses detect payroll risks, understand compliance impact, and make informed decisions *before* payroll is executed.
+Connect-Bridge is a **modern team communication platform** that turns conversations into **shared knowledge and explicit outcomes**, instead of letting important context disappear in chat history.
 
-Traditional payroll systems focus on calculation.  
-CompuPay focuses on **reasoning before money moves**.
-
----
-
-## 🚀 What CompuPay Solves
-
-Payroll errors, compliance issues, and unexpected cost changes often surface **after** payroll runs—when fixing them is expensive and stressful.
-
-CompuPay helps teams:
-- Identify payroll risks **before execution**
-- Understand *why* something is risky using AI explanations
-- Simulate compliance and policy changes safely
-- Keep humans fully in control of approvals
-
-AI in CompuPay is **advisory, explainable, and auditable**—never autonomous.
+Chat is the input.  
+Knowledge and decisions are the output.
 
 ---
 
-## 🧠 Key Capabilities
+## 🚀 Why Connect-Bridge Exists
 
-- **Pre-Run Risk Detection**  
-  Detect anomalies such as unusual salary changes, missing data, or potential errors before payroll approval.
+Tools like Slack and Discord are great for communication, but they fail at:
+- Preserving important context
+- Making decisions explicit
+- Helping teams understand *what actually matters* after conversations end
 
-- **AI-Powered Explanations**  
-  Clear, structured insights explaining *what changed*, *why it matters*, and *how confident the system is*.
-
-- **Compliance Impact Simulation**  
-  Preview how regulatory or policy changes affect payroll costs and employee pay before activation.
-
-- **Audit & Traceability**  
-  Every action, approval, and AI insight is traceable and reviewable.
+Connect-Bridge is built to solve exactly that.
 
 ---
 
-## 🏗️ Architecture Principles
+## 💡 Core Concepts
 
-- Backend-first, multi-tenant design  
-- Deterministic payroll calculations  
-- AI as an explainability layer, not a decision-maker  
-- Async processing for scale and reliability  
-- Built to handle **high concurrency and enterprise workloads**
+### 🧠 Knowledge
+Important messages can be promoted into **channel knowledge**:
+- Persistent
+- Read-only
+- Easy to revisit
+- Scoped to where the conversation happened
+
+### ✅ Outcomes
+Conversations can produce explicit outcomes:
+- **Decisions** — what was agreed
+- **Actions** — who committed to what
+
+No tasks. No clutter. Just clarity.
+
+---
+
+## 🧭 Product Philosophy
+
+- Chat is not the product — it’s the raw input
+- Knowledge and outcomes are first-class entities
+- No feature bloat
+- No task-manager creep
+- Designed for teams that value clarity over noise
+
+---
+
+## 🏗️ MVP Scope
+
+- Real-time chat
+- Knowledge panel per channel
+- Outcomes panel per channel
+- Clear separation between messages, knowledge, and decisions
+
+Everything else is intentionally excluded.
 
 ---
 
 ## ⚠️ Project Status
 
-CompuPay is **actively under development**.  
-The product is evolving, and feedback is highly appreciated.
+Connect-Bridge is currently in **active development**.  
+The focus is on getting the core model right before expanding features.
 
-If you explore the project, feel free to share:
-- Bugs
-- UX friction
-- Missing features
-- Critical feedback
+Feedback, ideas, and criticism are welcome.
 
 ---
 
 ## 📌 Vision
 
-> Payroll should be predictable, explainable, and safe — not reactive.
+> Teams shouldn’t have to re-read chat history to understand what matters.
 
-CompuPay aims to become the intelligence layer that modern payroll systems are missing.
+Connect-Bridge exists to make conversations **rememberable and actionable**.
