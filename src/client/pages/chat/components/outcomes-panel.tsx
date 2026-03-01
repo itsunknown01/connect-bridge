@@ -2,31 +2,19 @@ import { ScrollArea } from "@/src/client/components/ui";
 import { ClipboardList } from "lucide-react";
 import { OutcomeItem } from "./outcomes/outcome-item";
 import { useChannelOutcomes } from "../hooks";
-import { useQueryClient } from "@tanstack/react-query";
 import { Outcome } from "@/src/client/lib/types";
+import {
+  jumpToMessage,
+  PanelEmptyState,
+  PanelSpinner,
+  NoChannelSelected,
+} from "./panel-utils";
 
 interface OutcomesPanelProps {
   channelId: string | null;
 }
 
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center h-full text-center px-6 py-12">
-      <div className="w-16 h-16 bg-gray-100 dark:bg-white/10 rounded-full flex items-center justify-center mb-4">
-        <ClipboardList className="w-8 h-8 text-gray-400 dark:text-white/60" />
-      </div>
-      <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-        No outcomes yet
-      </h3>
-      <p className="text-xs text-gray-500 dark:text-white/70 max-w-[200px]">
-        Decisions and actions you create from messages will appear here
-      </p>
-    </div>
-  );
-}
-
 export default function OutcomesPanel({ channelId }: OutcomesPanelProps) {
-  const queryClient = useQueryClient();
   const {
     items: outcomeItems,
     loading,
@@ -34,40 +22,20 @@ export default function OutcomesPanel({ channelId }: OutcomesPanelProps) {
   } = useChannelOutcomes(channelId);
 
   if (!channelId) {
-    return (
-      <div className="flex items-center justify-center h-full text-sm text-gray-500 dark:text-white/50 px-4 text-center">
-        Select a channel to view outcomes
-      </div>
-    );
+    return <NoChannelSelected text="Select a channel to view outcomes" />;
+  }
+
+  if (loading && outcomeItems.length === 0) {
+    return <PanelSpinner />;
   }
 
   const handleRemove = async (outcomeId: string | number) => {
     try {
       await deleteOutcome(String(outcomeId));
-      queryClient.invalidateQueries({ queryKey: ["outcomes", channelId] });
     } catch (error) {
       console.error("Failed to remove outcome:", error);
     }
   };
-
-  const handleJumpToMessage = (messageId: string | number) => {
-    const messageElement = document.getElementById(`message-${messageId}`);
-    if (messageElement) {
-      messageElement.scrollIntoView({ behavior: "smooth", block: "center" });
-      messageElement.classList.add("highlight-message");
-      setTimeout(() => {
-        messageElement.classList.remove("highlight-message");
-      }, 2000);
-    }
-  };
-
-  if (loading && outcomeItems.length === 0) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#ADBC9F] border-t-transparent" />
-      </div>
-    );
-  }
 
   return (
     <ScrollArea className="h-full scrollbar-thin">
@@ -82,12 +50,16 @@ export default function OutcomesPanel({ channelId }: OutcomesPanelProps) {
               <OutcomeItem
                 outcome={item}
                 onRemove={handleRemove}
-                onJumpToMessage={handleJumpToMessage}
+                onJumpToMessage={jumpToMessage}
               />
             </div>
           ))
         ) : (
-          <EmptyState />
+          <PanelEmptyState
+            icon={ClipboardList}
+            title="No outcomes yet"
+            description="Decisions and actions you create from messages will appear here"
+          />
         )}
       </div>
     </ScrollArea>

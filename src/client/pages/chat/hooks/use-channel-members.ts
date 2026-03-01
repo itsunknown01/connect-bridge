@@ -1,13 +1,11 @@
-import { useAppSelector } from "@/src/client/hooks";
+import { useSocketStore } from "@/src/client/stores/socket-store";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { axiosPrivate } from "../../../helpers/api";
 import { Member } from "../../../lib/types";
 
 export default function useChannelMembers(channelId: string | null) {
-  const { onlineUsers, channelOnlineUsers } = useAppSelector(
-    (state) => state.socketReducer,
-  );
+  const { onlineUsers, channelOnlineUsers } = useSocketStore();
 
   // Use TanStack Query for member list management
   const {

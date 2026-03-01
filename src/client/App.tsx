@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import { lazy, Suspense } from "react";
-import { ThemeProvider } from "./contexts/ThemeContext";
+import { ThemeProvider } from "./hooks/contexts/ThemeContext";
 
 const Auth = lazy(() => import("./pages/Authentication"));
 const LandingPage = lazy(() => import("./pages/landing/LandingPage"));

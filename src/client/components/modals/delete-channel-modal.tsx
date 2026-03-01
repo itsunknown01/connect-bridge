@@ -7,37 +7,32 @@ import { Button } from "../ui";
 //   DialogTitle,
 // } from "../ui/dialog";
 import { Modal } from "../ui/modal";
-import { useAppDispatch, useAppSelector } from "../../hooks";
-import { onClose } from "../../redux/slices/modalSlice";
-import { RootState } from "../../redux/store";
+import { useModalStore } from "@/src/client/stores/modal-store";
+import { useChannelStore } from "@/src/client/stores/channel-store";
+import { useDeleteChannel } from "@/src/client/hooks/api/use-channel-queries";
 import { AlertTriangle } from "lucide-react";
-import { deleteChannelAsync } from "../../redux/slices/channelSlice";
 import { useNavigate } from "react-router-dom";
 
 export default function DeleteChannelModal() {
-  const dispatch = useAppDispatch();
+  const { onClose } = useModalStore();
   const navigate = useNavigate();
-  const { currentChannel, loading, channels } = useAppSelector(
-    (state: RootState) => state.channelReducer,
-  );
-  const { isOpen, type } = useAppSelector(
-    (state: RootState) => state.modalReducer,
-  );
+  const { currentChannel } = useChannelStore();
+  const { isOpen, type } = useModalStore();
+  const deleteChannel = useDeleteChannel();
 
   const isModalOpen = isOpen && type === "deleteChannel";
 
-  const handleClose = () => dispatch(onClose());
+  const handleClose = () => onClose();
 
   const handleDelete = async () => {
     if (!currentChannel) return;
 
-    const result = await dispatch(
-      deleteChannelAsync(String(currentChannel.id)),
-    );
-
-    if (deleteChannelAsync.fulfilled.match(result)) {
+    try {
+      await deleteChannel.mutateAsync(String(currentChannel.id));
       handleClose();
       navigate("/chats");
+    } catch {
+      // Error handled by mutation
     }
   };
 
@@ -69,16 +64,20 @@ export default function DeleteChannelModal() {
       </div>
 
       <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={handleClose} disabled={loading}>
+        <Button
+          variant="outline"
+          onClick={handleClose}
+          disabled={deleteChannel.isPending}
+        >
           Cancel
         </Button>
         <Button
           variant="destructive"
           onClick={handleDelete}
-          disabled={loading}
+          disabled={deleteChannel.isPending}
           className="bg-red-600 hover:bg-red-700"
         >
-          {loading ? "Deleting..." : "Delete Channel"}
+          {deleteChannel.isPending ? "Deleting..." : "Delete Channel"}
         </Button>
       </div>
     </Modal>

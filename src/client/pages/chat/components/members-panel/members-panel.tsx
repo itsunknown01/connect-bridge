@@ -1,12 +1,12 @@
-import { useAppDispatch, useAppSelector } from "@/src/client/hooks";
+import { useAuthStore } from "@/src/client/stores/auth-store";
+import { useChannelStore } from "@/src/client/stores/channel-store";
+import { useRemoveMember } from "@/src/client/hooks/api/use-channel-queries";
 import { useChannelMembers } from "../../hooks";
 import MemberItem from "./member-item";
 import { memo, useMemo, useCallback } from "react";
 import { VList } from "virtua";
-import { removeMemberAsync } from "@/src/client/redux/slices/channelSlice";
-import { useQueryClient } from "@tanstack/react-query";
-
 import { Member } from "@/src/client/lib/types";
+import { PanelSpinner, NoChannelSelected } from "../panel-utils";
 
 interface MembersPanelProps {
   channelId: string | null;
@@ -37,21 +37,12 @@ function EmptyState() {
   );
 }
 
-function NoChannelSelected() {
-  return (
-    <div className="flex items-center justify-center h-full text-sm text-gray-500">
-      Select a channel to view members
-    </div>
-  );
-}
-
 const MembersPanel = memo(function MembersPanel({
   channelId,
 }: MembersPanelProps) {
-  const dispatch = useAppDispatch();
-  const queryClient = useQueryClient();
-  const { currentUser } = useAppSelector((state) => state.authReducer);
-  const { currentChannel } = useAppSelector((state) => state.channelReducer);
+  const removeMember = useRemoveMember();
+  const currentUser = useAuthStore((s) => s.currentUser);
+  const currentChannel = useChannelStore((s) => s.currentChannel);
 
   const {
     members,
@@ -63,15 +54,14 @@ const MembersPanel = memo(function MembersPanel({
   } = useChannelMembers(channelId);
 
   const isCreator = currentChannel?.userId === currentUser?.id;
+  const ownerId = currentChannel?.userId ?? null;
 
   const handleKick = useCallback(
     async (userId: string | number) => {
       if (!channelId) return;
-      await dispatch(removeMemberAsync({ channelId, userId }));
-      // Invalidate query to refresh member list
-      queryClient.invalidateQueries({ queryKey: ["members", channelId] });
+      await removeMember.mutateAsync({ channelId, userId });
     },
-    [channelId, dispatch, queryClient],
+    [channelId, removeMember],
   );
 
   // Flatten the list into items for VList
@@ -98,18 +88,14 @@ const MembersPanel = memo(function MembersPanel({
     return items;
   }, [onlineMembers, offlineMembers]);
 
-  if (!channelId) return <NoChannelSelected />;
+  if (!channelId)
+    return <NoChannelSelected text="Select a channel to view members" />;
 
   if (loading && members.length === 0) {
     return (
       <div className="h-full flex flex-col">
         <PanelHeader />
-        <div className="flex-1 flex flex-col items-center justify-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#ADBC9F] dark:border-white border-t-transparent" />
-          <span className="text-xs text-gray-400 dark:text-white/50">
-            Loading members...
-          </span>
-        </div>
+        <PanelSpinner label="Loading members..." />
       </div>
     );
   }
@@ -153,6 +139,7 @@ const MembersPanel = memo(function MembersPanel({
                     isCurrentUser={member.id === currentUser?.id}
                     canKick={isCreator}
                     onKick={handleKick}
+                    isOwner={member.id === ownerId}
                   />
                 </div>
               );

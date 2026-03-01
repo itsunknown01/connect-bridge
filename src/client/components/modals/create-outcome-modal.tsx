@@ -22,8 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/src/client/components/ui/select";
-import { useAppDispatch, useAppSelector } from "@/src/client/hooks";
-import { onClose } from "@/src/client/redux/slices/modalSlice";
+import { useModalStore } from "@/src/client/stores/modal-store";
 import { useState, useEffect } from "react";
 import { OutcomeType } from "@/src/client/lib/types";
 import { useChannelMembers, useChannelOutcomes } from "../../pages/chat/hooks";
@@ -38,8 +37,7 @@ const OutcomeSchema = z.object({
 });
 
 export default function CreateOutcomeModal() {
-  const { isOpen, type, data } = useAppSelector((state) => state.modalReducer);
-  const dispatch = useAppDispatch();
+  const { isOpen, type, data, onClose } = useModalStore();
 
   const isModalOpen = isOpen && type === "createOutcome";
   const { message } = data || {};
@@ -69,7 +67,7 @@ export default function CreateOutcomeModal() {
   }, [isModalOpen, form]);
 
   const handleClose = () => {
-    dispatch(onClose());
+    onClose();
     form.reset();
   };
 

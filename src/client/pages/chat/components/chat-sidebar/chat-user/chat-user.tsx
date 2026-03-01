@@ -13,25 +13,24 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/src/client/components/ui/sidebar";
-import { useAppDispatch, useAppSelector } from "@/src/client/hooks";
-import { logoutUserAsync } from "@/src/client/redux/slices/authSlice";
-import { disconnectRequested } from "@/src/client/redux/slices/socketSlice";
+import { useAuthStore } from "@/src/client/stores/auth-store";
+import { useLogout } from "@/src/client/hooks/api/use-auth-queries";
+import { socketManager } from "@/src/client/lib/socket-manager";
 import { BadgeCheck, ChevronsUpDown, LogOut } from "lucide-react";
 import { UserAvatar, UserInfo } from "./";
-import { onOpen } from "@/src/client/redux/slices/modalSlice";
+import { useModalStore } from "@/src/client/stores/modal-store";
 
 export default function ChatUser() {
-  const { currentUser: user, isOnline } = useAppSelector(
-    (state) => state.authReducer,
-  );
+  const { currentUser: user, isOnline } = useAuthStore();
   const { isMobile } = useSidebar();
-  const dispatch = useAppDispatch();
+  const logout = useLogout();
+  const { onOpen } = useModalStore();
 
   if (!user) return null;
 
   function handleLogout() {
-    dispatch(logoutUserAsync());
-    dispatch(disconnectRequested());
+    logout.mutate();
+    socketManager.disconnect();
   }
 
   return (
@@ -62,9 +61,7 @@ export default function ChatUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem
-                onClick={() => dispatch(onOpen({ type: "profileSettings" }))}
-              >
+              <DropdownMenuItem onClick={() => onOpen("profileSettings")}>
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>

@@ -1,13 +1,20 @@
 /**
- * Header Component
- * Responsible only for navigation and branding (Single Responsibility)
+ * Header Component — Scroll-aware frosted glass
+ *
+ * Transparent at page top, frosted glass on scroll.
+ * Uses GSAP ScrollTrigger for efficient scroll listening.
  */
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Menu, X, Zap, Sun, Moon } from "lucide-react";
 import { Button } from "@/src/client/components/ui";
 import { Switch } from "@/src/client/components/ui/switch";
-import { useTheme } from "@/src/client/contexts/ThemeContext";
-import { NAV_LINKS } from "../constants";
+import { useTheme } from "@/src/client/hooks/contexts/ThemeContext";
+import { NAV_LINKS, navigateToAuth } from "../constants";
+
+gsap.registerPlugin(ScrollTrigger);
 
 function ThemeToggle() {
   const { resolvedTheme, toggleTheme } = useTheme();
@@ -32,13 +39,33 @@ function ThemeToggle() {
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
 
-  const handleNavigate = () => {
-    window.location.href = "/auth";
-  };
+  // Scroll-aware header opacity
+  useGSAP(() => {
+    if (!headerRef.current) return;
+
+    ScrollTrigger.create({
+      start: "top -80",
+      end: 99999,
+      onUpdate: (self) => {
+        if (!headerRef.current) return;
+        if (self.direction === 1 && self.progress > 0) {
+          // Scrolling down past threshold
+          headerRef.current.classList.add("header-scrolled");
+        }
+        if (self.scroll() < 80) {
+          headerRef.current.classList.remove("header-scrolled");
+        }
+      },
+    });
+  });
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-[#12372A]/90 backdrop-blur-xl border-b border-[#12372A]/10 dark:border-white/10">
+    <header
+      ref={headerRef}
+      className="fixed top-0 left-0 right-0 z-[100] transition-all duration-300 bg-transparent [&.header-scrolled]:bg-white/90 dark:[&.header-scrolled]:bg-[#12372A]/90 [&.header-scrolled]:backdrop-blur-xl [&.header-scrolled]:border-b [&.header-scrolled]:border-[#12372A]/10 dark:[&.header-scrolled]:border-white/10 [&.header-scrolled]:shadow-sm"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -51,7 +78,10 @@ export default function Header() {
           </a>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav
+            className="hidden md:flex items-center gap-8"
+            aria-label="Main navigation"
+          >
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
@@ -70,14 +100,14 @@ export default function Header() {
               variant="ghost"
               size="sm"
               className="text-[#12372A] dark:text-white"
-              onClick={handleNavigate}
+              onClick={navigateToAuth}
             >
               Sign In
             </Button>
             <Button
               size="sm"
               className="bg-[#12372A] hover:bg-[#12372A]/90 text-white dark:bg-white dark:text-[#12372A] dark:hover:bg-white/90 font-semibold"
-              onClick={handleNavigate}
+              onClick={navigateToAuth}
             >
               Get Started
             </Button>
@@ -89,6 +119,7 @@ export default function Header() {
             <button
               className="p-2 text-[#12372A] dark:text-white"
               onClick={() => setMenuOpen(!menuOpen)}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
             >
               {menuOpen ? (
                 <X className="w-6 h-6" />
@@ -102,7 +133,7 @@ export default function Header() {
         {/* Mobile Menu */}
         {menuOpen && (
           <div className="md:hidden py-4 border-t border-[#12372A]/10 dark:border-white/10">
-            <nav className="flex flex-col gap-3">
+            <nav className="flex flex-col gap-3" aria-label="Mobile navigation">
               {NAV_LINKS.map((link) => (
                 <a
                   key={link.href}
@@ -114,7 +145,7 @@ export default function Header() {
               ))}
               <Button
                 className="bg-[#12372A] text-white dark:bg-white dark:text-[#12372A] mt-2"
-                onClick={handleNavigate}
+                onClick={navigateToAuth}
               >
                 Get Started
               </Button>

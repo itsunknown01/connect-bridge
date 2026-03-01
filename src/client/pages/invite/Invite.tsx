@@ -1,15 +1,15 @@
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "@/src/client/hooks";
-import { joinChannelAsync } from "@/src/client/redux/slices/channelSlice";
-import { selectIsAuthenticated } from "@/src/client/redux/selectors";
+import { useAuthStore } from "@/src/client/stores/auth-store";
+import { useJoinChannel } from "@/src/client/hooks/api/use-channel-queries";
 import { toast } from "sonner";
 
 export default function Invite() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const isAuthenticated = !!accessToken;
+  const joinChannel = useJoinChannel();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -24,30 +24,24 @@ export default function Invite() {
       return;
     }
 
-    const joinChannel = async () => {
+    const doJoin = async () => {
       try {
-        const result = await dispatch(joinChannelAsync(id));
-        if (joinChannelAsync.fulfilled.match(result)) {
-          toast.success("Joined channel successfully!");
+        await joinChannel.mutateAsync(id);
+        toast.success("Joined channel successfully!");
+        navigate("/chats");
+      } catch (error: any) {
+        const message = error?.response?.data?.message || "";
+        if (message.includes("Already a member")) {
           navigate("/chats");
         } else {
-          // If error is "Already a member", still redirect to chats
-          const message = (result.payload as string) || "";
-          if (message.includes("Already a member")) {
-            navigate("/chats");
-          } else {
-            toast.error(message || "Failed to join channel");
-            navigate("/");
-          }
+          toast.error(message || "Failed to join channel");
+          navigate("/");
         }
-      } catch (error) {
-        toast.error("Something went wrong");
-        navigate("/");
       }
     };
 
-    joinChannel();
-  }, [id, isAuthenticated, dispatch, navigate]);
+    doJoin();
+  }, [id, isAuthenticated]);
 
   return (
     <div className="h-screen flex items-center justify-center bg-white w-full">

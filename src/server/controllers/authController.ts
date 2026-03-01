@@ -25,7 +25,7 @@ export const login = async (req: Request, res: Response) => {
     const validation = LoginSchema.safeParse(req.body);
 
     if (!validation.success) {
-      return res.status(400).json({ message: "Invalid fields" });
+      return sendBadRequest(res, "Invalid fields");
     }
     const { email, password } = validation.data;
 
@@ -34,13 +34,13 @@ export const login = async (req: Request, res: Response) => {
     });
 
     if (!existingUser || !existingUser.email || !existingUser.password) {
-      return res.status(400).json({ message: "Email does not exists" });
+      return sendBadRequest(res, "Email does not exists");
     }
 
     const isMatch = await bcrypt.compare(password, existingUser.password);
 
     if (!isMatch) {
-      return res.status(400).json({ message: "Password invalid" });
+      return sendBadRequest(res, "Password invalid");
     }
 
     const accessToken = jwt.sign(
@@ -80,7 +80,7 @@ export const register = async (req: Request, res: Response) => {
     const validation = RegisterSchema.safeParse(req.body);
 
     if (!validation.success) {
-      return res.status(400).json({ message: "Invalid fields" });
+      return sendBadRequest(res, "Invalid fields");
     }
     const { email, name, password } = validation.data;
 
@@ -89,7 +89,7 @@ export const register = async (req: Request, res: Response) => {
     });
 
     if (existingUser) {
-      return res.status(400).json({ message: "Email already in use" });
+      return sendBadRequest(res, "Email already in use");
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
@@ -112,7 +112,7 @@ export const refresh = async (req: IRequest, res: Response) => {
     const refreshToken = req.cookies.refresh;
 
     if (!refreshToken) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return sendUnauthorized(res);
     }
 
     const payload = jwt.verify(
@@ -125,7 +125,7 @@ export const refresh = async (req: IRequest, res: Response) => {
     });
 
     if (!existingUser || !existingUser.id) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return sendUnauthorized(res);
     }
 
     const accessToken = jwt.sign(
@@ -163,7 +163,7 @@ export const logout = async (req: Request, res: Response) => {
 export const updateProfile = async (req: IRequest, res: Response) => {
   try {
     const { name } = req.body;
-    const user = req.user; // Already furnished by JWTMiddleware
+    const user = req.user;
 
     if (!user) return sendUnauthorized(res);
 

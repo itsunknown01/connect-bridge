@@ -1,20 +1,15 @@
-import { useAppDispatch, useAppSelector } from "@/src/client/hooks/index.ts";
 import { useEffect, useState } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import {
-  logoutUserAsync,
-  refreshTokenAsync,
-} from "../../redux/slices/authSlice";
-import {
-  connectRequested,
-  disconnectRequested,
-} from "../../redux/slices/socketSlice.ts";
+import { useAuthStore } from "../../stores/auth-store";
+import { useRefreshToken, useLogout } from "../../hooks/api/use-auth-queries";
+import { socketManager } from "../../lib/socket-manager";
 import ModalProvider from "./modal-provider.tsx";
 
 export default function ProtectedLayout() {
   const location = useLocation();
-  const dispatch = useAppDispatch();
-  const { accessToken, loading } = useAppSelector((state) => state.authReducer);
+  const { accessToken, loading } = useAuthStore();
+  const refreshToken = useRefreshToken();
+  const logout = useLogout();
 
   const [hasAttemptedRefresh, setHasAttemptedRefresh] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() =>
@@ -38,20 +33,20 @@ export default function ProtectedLayout() {
 
   useEffect(() => {
     if (isAuthenticated && accessToken) {
-      dispatch(connectRequested());
+      socketManager.connect();
     } else {
-      dispatch(disconnectRequested());
+      socketManager.disconnect();
     }
   }, [isAuthenticated, accessToken]);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        await dispatch(refreshTokenAsync());
+        await refreshToken.mutateAsync();
       } catch {
         // Silent refresh failure - trigger logout
-        dispatch(logoutUserAsync());
-        dispatch(disconnectRequested());
+        logout.mutate();
+        socketManager.disconnect();
       } finally {
         setHasAttemptedRefresh(true);
       }
@@ -62,7 +57,7 @@ export default function ProtectedLayout() {
     } else {
       setHasAttemptedRefresh(true);
     }
-  }, [accessToken, dispatch, isAuthenticated]);
+  }, [accessToken, isAuthenticated]);
 
   if (!hasAttemptedRefresh) {
     return (

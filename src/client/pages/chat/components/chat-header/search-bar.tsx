@@ -1,10 +1,7 @@
 import { Button, Input } from "@/src/client/components/ui";
-import { useAppDispatch, useAppSelector } from "@/src/client/hooks";
 import { useDebounce } from "@/src/client/hooks/customs/useDebounce";
-import {
-  clearSearchResults,
-  searchChannelMessagesAsync,
-} from "@/src/client/redux/slices/messageSlice";
+import { useMessageStore } from "@/src/client/stores/message-store";
+import { useSearchMessages } from "@/src/client/hooks/api/use-message-queries";
 import { Loader2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -21,32 +18,28 @@ export default function SearchBar({
 }: SearchBarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
-  const dispatch = useAppDispatch();
-
-  const { searchLoading, searchResults } = useAppSelector(
-    (state) => state.messageReducer
-  );
+  const { mutate: searchMutate } = useSearchMessages();
+  const { searchLoading, searchResults, clearSearchResults } =
+    useMessageStore();
 
   const debouncedQuery = useDebounce(searchQuery, 500);
 
   const performSearch = useCallback(
     (query: string) => {
       if (!query.trim() || !channelId) {
-        dispatch(clearSearchResults());
+        clearSearchResults();
         setShowResults(false);
         return;
       }
 
-      dispatch(
-        searchChannelMessagesAsync({
-          channelId,
-          query: query.trim(),
-          limit: 10,
-        })
-      );
+      searchMutate({
+        channelId,
+        query: query.trim(),
+        limit: 10,
+      });
       setShowResults(true);
     },
-    [channelId, dispatch]
+    [channelId, clearSearchResults, searchMutate],
   );
 
   useEffect(() => {
@@ -55,9 +48,9 @@ export default function SearchBar({
 
   useEffect(() => {
     return () => {
-      dispatch(clearSearchResults());
+      clearSearchResults();
     };
-  }, [dispatch]);
+  }, [clearSearchResults]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -68,7 +61,7 @@ export default function SearchBar({
   };
 
   const handleClose = () => {
-    dispatch(clearSearchResults());
+    clearSearchResults();
     setSearchQuery("");
     setShowResults(false);
     onClose();

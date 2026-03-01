@@ -152,3 +152,15 @@ export const FOOTER_LINKS = {
     { label: "Terms", href: "#" },
   ],
 } as const;
+
+// Shared navigation utility (replaces 4x duplicate handleNavigate)
+export const navigateToAuth = () => {
+  window.location.href = "/auth";
+};
+
+// Trust signals for hero section
+export const TRUST_SIGNALS = [
+  "Free to start",
+  "No credit card",
+  "SOC 2 compliant",
+] as const;

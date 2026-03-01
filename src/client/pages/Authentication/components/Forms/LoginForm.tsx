@@ -1,10 +1,5 @@
-/**
- * Login Form Component
- * Handles user login with email and password
- */
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, Eye, EyeOff, Lock, Mail } from "lucide-react";
-import { useState } from "react";
+import { CheckCircle2, Mail } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as z from "zod";
@@ -18,41 +13,38 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  Input,
 } from "@/src/client/components/ui";
-import { useAppDispatch, useAppSelector } from "@/src/client/hooks";
-import { loginUserAsync } from "@/src/client/redux/slices/authSlice";
-import { connectRequested } from "@/src/client/redux/slices/socketSlice";
+import { useAuthStore } from "@/src/client/stores/auth-store";
+import { useLogin } from "@/src/client/hooks/api/use-auth-queries";
+import { socketManager } from "@/src/client/lib/socket-manager";
+import { IconInput, PasswordInput, SubmitButton } from "../ui/auth-fields";
 
-const LoginForm = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const { loading } = useAppSelector((state) => state.authReducer);
-
+export default function LoginForm() {
+  const { loading } = useAuthStore();
+  const login = useLogin();
   const location = useLocation();
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const redirectPath = location.state?.from || "/chats";
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
 
-  const LoginSubmit = async (values: z.infer<typeof LoginSchema>) => {
-    const result = await dispatch(loginUserAsync(values));
-    if (loginUserAsync.fulfilled.match(result)) {
-      dispatch(connectRequested());
+  const onSubmit = async (values: z.infer<typeof LoginSchema>) => {
+    try {
+      await login.mutateAsync(values);
+      socketManager.connect();
       navigate(redirectPath, { replace: true });
+    } catch {
+      // Error handled by mutation
     }
   };
 
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(LoginSubmit)}
+        onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-4 sm:space-y-5"
       >
         <FormField
@@ -64,21 +56,19 @@ const LoginForm = () => {
                 Email
               </FormLabel>
               <FormControl>
-                <div className="relative">
-                  <Mail className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[#ADBC9F] pointer-events-none" />
-                  <Input
-                    {...field}
-                    type="email"
-                    placeholder="your@email.com"
-                    disabled={loading}
-                    className="pl-10 sm:pl-12 py-3 sm:py-3.5 bg-[#ADBC9F]/10 dark:bg-white/10 border-2 border-transparent rounded-xl text-sm sm:text-base text-[#12372A] dark:text-white placeholder:text-[#12372A]/40 dark:placeholder:text-white/40 focus:bg-white dark:focus:bg-white/5 focus:border-[#ADBC9F] focus-visible:ring-0 focus-visible:ring-offset-0"
-                  />
-                </div>
+                <IconInput
+                  icon={Mail}
+                  type="email"
+                  placeholder="your@email.com"
+                  disabled={loading}
+                  {...field}
+                />
               </FormControl>
               <FormMessage className="text-xs sm:text-sm" />
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="password"
@@ -97,59 +87,22 @@ const LoginForm = () => {
                 </Button>
               </div>
               <FormControl>
-                <div className="relative">
-                  <Lock className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[#ADBC9F] pointer-events-none" />
-                  <Input
-                    {...field}
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    disabled={loading}
-                    className="pl-10 sm:pl-12 pr-12 py-3 sm:py-3.5 bg-[#ADBC9F]/10 dark:bg-white/10 border-2 border-transparent rounded-xl text-sm sm:text-base text-[#12372A] dark:text-white placeholder:text-[#12372A]/40 dark:placeholder:text-white/40 focus:bg-white dark:focus:bg-white/5 focus:border-[#ADBC9F] focus-visible:ring-0 focus-visible:ring-offset-0"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 text-[#ADBC9F] hover:text-[#12372A] dark:hover:text-white hover:bg-transparent"
-                    disabled={loading}
-                    aria-label={
-                      showPassword ? "Hide password" : "Show password"
-                    }
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" />
-                    ) : (
-                      <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
-                    )}
-                  </Button>
-                </div>
+                <PasswordInput
+                  {...field}
+                  placeholder="••••••••"
+                  disabled={loading}
+                />
               </FormControl>
               <FormMessage className="text-xs sm:text-sm" />
             </FormItem>
           )}
         />
 
-        <Button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-[#12372A] hover:bg-[#12372A]/90 text-white dark:bg-white dark:text-[#12372A] dark:hover:bg-white/90 py-3 sm:py-3.5 rounded-xl font-semibold text-sm sm:text-base mt-6 sm:mt-8 shadow-lg hover:shadow-xl transition-all"
-        >
-          {loading ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white/30 dark:border-[#12372A]/30 border-t-white dark:border-t-[#12372A] rounded-full animate-spin mr-2"></div>
-              Processing...
-            </>
-          ) : (
-            <>
-              Sign In
-              <CheckCircle2 className="w-5 h-5 ml-2" />
-            </>
-          )}
-        </Button>
+        <SubmitButton loading={loading}>
+          Sign In
+          <CheckCircle2 className="w-5 h-5 ml-2" />
+        </SubmitButton>
       </form>
     </Form>
   );
-};
-
-export default LoginForm;
+}

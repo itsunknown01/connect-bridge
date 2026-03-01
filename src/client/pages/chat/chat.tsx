@@ -1,4 +1,5 @@
-import { useAppDispatch, useAppSelector } from "@/src/client/hooks";
+import { useChannelStore } from "@/src/client/stores/channel-store";
+import { useModalStore } from "@/src/client/stores/modal-store";
 import {
   ChatHeader,
   ChatSidebar,
@@ -9,12 +10,8 @@ import {
   useChannelConnection,
   useChannelSelection,
 } from "@/src/client/pages/chat/hooks";
-import {
-  fetchChannelByIdAsync,
-  getChannelsAsync,
-} from "@/src/client/redux/slices/channelSlice";
-import { RootState } from "@/src/client/redux/store";
-import { useEffect, useState } from "react";
+import { useChannels } from "@/src/client/hooks/api/use-channel-queries";
+import { useEffect, useRef, useState } from "react";
 import {
   Sidebar,
   SidebarInset,
@@ -41,36 +38,72 @@ function LoadingSpinner() {
   );
 }
 
-export default function Chat() {
-  const dispatch = useAppDispatch();
-  const { channels, loading } = useAppSelector(
-    (state: RootState) => state.channelReducer,
+/* ─── Mobile Right Panel (SRP) ─── */
+function MobileRightPanel({
+  open,
+  onOpenChange,
+  channelId,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  channelId: string | null;
+}) {
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        className="w-full sm:w-80 p-0 dark:bg-[#12372A] dark:border-white/10 flex flex-col"
+      >
+        <SheetHeader className="px-4 py-3 border-b border-[#ADBC9F]/20 dark:border-white/10 flex-shrink-0">
+          <SheetTitle className="text-sm font-semibold text-[#12372A] dark:text-white">
+            Channel Panel
+          </SheetTitle>
+        </SheetHeader>
+        <div className="flex-1 min-h-0">
+          <RightPanel channelId={channelId} />
+        </div>
+      </SheetContent>
+    </Sheet>
   );
+}
+
+export default function Chat() {
+  const { channels } = useChannelStore();
+  const { onOpen } = useModalStore();
+  const { isLoading } = useChannels();
 
   const [showRightPanel, setShowRightPanel] = useState(true);
   const [showMobilePanel, setShowMobilePanel] = useState(false);
+  const hasOpenedCreateModal = useRef(false);
 
+  // Open create-channel modal only once for users with no channels
   useEffect(() => {
-    dispatch(getChannelsAsync());
-  }, [dispatch]);
+    if (!isLoading && channels.length === 0 && !hasOpenedCreateModal.current) {
+      hasOpenedCreateModal.current = true;
+      onOpen("createChannel");
+    }
+  }, [isLoading, channels.length, onOpen]);
 
   const { selectedChannelId, setSelectedChannelId, selectedChannel } =
     useChannelSelection(channels);
 
   useChannelConnection(selectedChannelId);
 
-  if (loading && channels.length === 0) {
+  if (isLoading) {
     return <LoadingSpinner />;
   }
 
   const handleCurrentChannel = (channelId: string) => {
     setSelectedChannelId(channelId);
-    dispatch(fetchChannelByIdAsync(channelId));
+    const channel = channels.find((ch) => String(ch.id) === channelId);
+    if (channel) {
+      useChannelStore.getState().setCurrentChannel(channel);
+    }
   };
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen h-[100dvh] bg-gradient-to-br from-[#ADBC9F]/20 to-white dark:from-[#12372A] dark:via-[#12372A] dark:to-[#ADBC9F]/10 w-full overflow-hidden">
+      <div className="flex h-[100dvh] bg-gradient-to-br from-[#ADBC9F]/20 to-white dark:from-[#12372A] dark:via-[#12372A] dark:to-[#ADBC9F]/10 w-full overflow-hidden">
         {/* Left Sidebar */}
         <Sidebar
           className="bg-transparent border-none flex flex-col shadow-sm"
@@ -105,18 +138,12 @@ export default function Chat() {
           </aside>
         )}
 
-        {/* Right Panel - Mobile Sheet */}
-        <Sheet open={showMobilePanel} onOpenChange={setShowMobilePanel}>
-          <SheetContent
-            side="right"
-            className="w-full sm:w-80 p-0 dark:bg-[#12372A] dark:border-white/10"
-          >
-            <SheetHeader className="sr-only">
-              <SheetTitle>Channel Panel</SheetTitle>
-            </SheetHeader>
-            <RightPanel channelId={selectedChannelId} />
-          </SheetContent>
-        </Sheet>
+        {/* Right Panel - Mobile */}
+        <MobileRightPanel
+          open={showMobilePanel}
+          onOpenChange={setShowMobilePanel}
+          channelId={selectedChannelId}
+        />
       </div>
     </SidebarProvider>
   );

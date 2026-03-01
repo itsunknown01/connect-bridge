@@ -1,10 +1,3 @@
-/**
- * Authentication Page
- *
- * Color Scheme:
- * - Light: #ADBC9F gradients, #12372A text/buttons, white cards
- * - Dark: #12372A with #ADBC9F accents, white text/buttons
- */
 import {
   Tabs,
   TabsContent,
@@ -16,7 +9,7 @@ import { useState } from "react";
 import LoginForm from "./components/Forms/LoginForm";
 import RegisterForm from "./components/Forms/RegisterForm";
 import AuthWrapper from "./components/wrappers/auth-wrapper";
-import { useTheme } from "@/src/client/contexts/ThemeContext";
+import { useTheme } from "@/src/client/hooks/contexts/ThemeContext";
 import { Sun, Moon } from "lucide-react";
 
 function ThemeToggle() {
@@ -40,7 +33,11 @@ function ThemeToggle() {
   );
 }
 
-const Auth = () => {
+/* ─── Shared tab trigger style ─── */
+const TAB_TRIGGER_CLASS =
+  "data-[state=active]:bg-[#12372A] data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-[#12372A] py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base data-[state=active]:shadow-lg transition-all duration-300 text-[#12372A] dark:text-white";
+
+export default function Auth() {
   const [activeTab, setActiveTab] = useState("login");
 
   return (
@@ -56,7 +53,8 @@ const Auth = () => {
       <div
         className="absolute inset-0 opacity-20 dark:opacity-10"
         style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(18,55,42,0.1) 1px, transparent 0)`,
+          backgroundImage:
+            "radial-gradient(circle at 2px 2px, rgba(18,55,42,0.1) 1px, transparent 0)",
           backgroundSize: "40px 40px",
         }}
       />
@@ -71,16 +69,10 @@ const Auth = () => {
       >
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6 sm:mb-8 p-1 bg-[#ADBC9F]/20 dark:bg-white/10 h-auto rounded-xl">
-            <TabsTrigger
-              value="login"
-              className="data-[state=active]:bg-[#12372A] data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-[#12372A] py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base data-[state=active]:shadow-lg transition-all duration-300 text-[#12372A] dark:text-white"
-            >
+            <TabsTrigger value="login" className={TAB_TRIGGER_CLASS}>
               Login
             </TabsTrigger>
-            <TabsTrigger
-              value="register"
-              className="data-[state=active]:bg-[#12372A] data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-[#12372A] py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base data-[state=active]:shadow-lg transition-all duration-300 text-[#12372A] dark:text-white"
-            >
+            <TabsTrigger value="register" className={TAB_TRIGGER_CLASS}>
               Register
             </TabsTrigger>
           </TabsList>
@@ -94,6 +86,4 @@ const Auth = () => {
       </AuthWrapper>
     </div>
   );
-};
-
-export default Auth;
+}

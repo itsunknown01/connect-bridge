@@ -1,10 +1,9 @@
 import { ChannelsSchema } from "@/src/schemas";
-import { useAppDispatch, useAppSelector } from "@/src/client/hooks";
-import { RootState } from "@/src/client/redux/store";
+import { useModalStore } from "@/src/client/stores/modal-store";
+import { useCreateChannel } from "@/src/client/hooks/api/use-channel-queries";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { onClose } from "../../redux/slices/modalSlice";
 import {
   Button,
   Form,
@@ -15,18 +14,11 @@ import {
   FormMessage,
   Input,
 } from "../ui";
-
 import { Modal } from "../ui/modal";
-import { createChannelAsync } from "../../redux/slices/channelSlice";
 
 export default function CreateChannelModal() {
-  const { isOpen, type } = useAppSelector(
-    (state: RootState) => state.modalReducer,
-  );
-  const { loading } = useAppSelector(
-    (state: RootState) => state.channelReducer,
-  );
-  const dispatch = useAppDispatch();
+  const { isOpen, type, onClose } = useModalStore();
+  const createChannel = useCreateChannel();
 
   const isCreateChannelModalOpen = isOpen && type === "createChannel";
 
@@ -40,15 +32,17 @@ export default function CreateChannelModal() {
   const createChannelSubmit = async (
     values: z.infer<typeof ChannelsSchema>,
   ) => {
-    const result = await dispatch(createChannelAsync(values));
-    if (createChannelAsync.fulfilled.match(result)) {
-      dispatch(onClose());
+    try {
+      await createChannel.mutateAsync(values);
+      onClose();
+    } catch {
+      // Error handled by mutation
     }
     form.reset();
   };
 
   const handleClose = () => {
-    dispatch(onClose());
+    onClose();
   };
 
   return (
@@ -71,7 +65,7 @@ export default function CreateChannelModal() {
                   <Input
                     placeholder="Channel name (e.g., project-alpha)"
                     type="text"
-                    disabled={loading}
+                    disabled={createChannel.isPending}
                     className="col-span-4 dark:bg-white/5 dark:border-white/10 dark:text-white"
                     {...field}
                   />
@@ -87,9 +81,9 @@ export default function CreateChannelModal() {
             <Button
               type="submit"
               className="bg-[#12372A] hover:bg-[#12372A]/90 text-white dark:bg-[#ADBC9F] dark:text-[#12372A] dark:hover:bg-[#ADBC9F]/90 transition-colors"
-              disabled={loading}
+              disabled={createChannel.isPending}
             >
-              {loading ? "Creating...." : "Create Channel"}
+              {createChannel.isPending ? "Creating...." : "Create Channel"}
             </Button>
           </div>
         </form>

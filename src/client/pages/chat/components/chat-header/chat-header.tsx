@@ -1,13 +1,8 @@
-import { Separator, Button } from "@/src/client/components/ui";
+import { Button, Separator } from "@/src/client/components/ui";
 import { SidebarTrigger } from "@/src/client/components/ui/sidebar";
-import {
-  ChannelInfo,
-  LoadingState,
-  HeaderRenameInput,
-  ChannelMenu,
-  SearchBar,
-} from "./";
 import { Channel } from "@/src/client/lib/types";
+import { useAuthStore } from "@/src/client/stores/auth-store";
+import { useModalStore } from "@/src/client/stores/modal-store";
 import {
   LayoutPanelLeft,
   PanelRightClose,
@@ -15,9 +10,7 @@ import {
   Search,
 } from "lucide-react";
 import { useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/src/client/hooks";
-import { onOpen } from "@/src/client/redux/slices/modalSlice";
-import { selectCurrentUser } from "@/src/client/redux/selectors";
+import { ChannelInfo, ChannelMenu, HeaderRenameInput, SearchBar } from "./";
 
 interface ChatHeaderProps {
   currentChannel: Channel | undefined;
@@ -35,13 +28,9 @@ export default function ChatHeader({
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  const dispatch = useAppDispatch();
-  const currentUser = useAppSelector(selectCurrentUser);
+  const { onOpen } = useModalStore();
+  const currentUser = useAuthStore((s) => s.currentUser);
   const isCreator = currentUser?.id === currentChannel?.userId;
-
-  if (!currentChannel) {
-    return <LoadingState />;
-  }
 
   return (
     <header className="border-b border-[#ADBC9F]/20 dark:border-[#ADBC9F]/20 bg-white/80 dark:bg-gradient-to-r dark:from-[#12372A] dark:to-[#0d2a1f]/90 backdrop-blur-md sticky top-0 z-10 transition-colors">
@@ -54,16 +43,22 @@ export default function ChatHeader({
             className="h-5 sm:h-6 bg-[#ADBC9F]/30 dark:bg-white/20 hidden sm:block"
           />
 
-          {isEditing ? (
-            <HeaderRenameInput
-              currentChannel={currentChannel}
-              onCancel={() => setIsEditing(false)}
-            />
+          {currentChannel ? (
+            isEditing ? (
+              <HeaderRenameInput
+                currentChannel={currentChannel}
+                onCancel={() => setIsEditing(false)}
+              />
+            ) : (
+              <ChannelInfo
+                channelName={currentChannel.name}
+                memberCount={currentChannel.memberCount}
+              />
+            )
           ) : (
-            <ChannelInfo
-              channelName={currentChannel.name}
-              memberCount={currentChannel.memberCount}
-            />
+            <span className="text-sm text-gray-400 dark:text-white/40 ml-2">
+              No channel selected
+            </span>
           )}
         </div>
 
@@ -73,7 +68,7 @@ export default function ChatHeader({
           {isSearchActive ? (
             <div className="px-4 sm:px-6">
               <SearchBar
-                channelId={String(currentChannel.id)}
+                channelId={String(currentChannel?.id)}
                 onClose={() => setIsSearchActive(false)}
               />
             </div>
@@ -122,10 +117,10 @@ export default function ChatHeader({
           {/* Global Actions Menu */}
           <ChannelMenu
             onSettingsClick={() => setIsEditing(true)}
-            onInviteClick={() => dispatch(onOpen({ type: "inviteMembers" }))}
-            onInfoClick={() => dispatch(onOpen({ type: "channelInfo" }))}
-            onLeaveClick={() => dispatch(onOpen({ type: "leaveChannel" }))}
-            onDeleteClick={() => dispatch(onOpen({ type: "deleteChannel" }))}
+            onInviteClick={() => onOpen("inviteMembers")}
+            onInfoClick={() => onOpen("channelInfo")}
+            onLeaveClick={() => onOpen("leaveChannel")}
+            onDeleteClick={() => onOpen("deleteChannel")}
             isCreator={isCreator}
           />
         </div>

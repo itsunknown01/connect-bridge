@@ -1,10 +1,9 @@
-import { useAppSelector } from "@/src/client/hooks";
 import { useCallback, useMemo, useRef, useEffect } from "react";
 import { ChannelWelcome, MessageItem } from "./";
 import { Channel, Knowledge } from "@/src/client/lib/types";
 import { MessageSquare } from "lucide-react";
-import { useChatMessages } from "@/src/client/hooks/use-chat-messages";
-import { selectCurrentUser } from "@/src/client/redux/selectors";
+import { useChatMessages } from "@/src/client/hooks/api/use-message-queries";
+import { useAuthStore } from "@/src/client/stores/auth-store";
 import { VList, VListHandle } from "virtua";
 import { useChannelKnowledge } from "../../hooks";
 
@@ -55,7 +54,7 @@ const MessageList = ({ channelId, currentChannel }: MessageListProps) => {
     deleteKnowledge,
   } = useChannelKnowledge(channelId);
 
-  const currentUser = useAppSelector(selectCurrentUser);
+  const currentUser = useAuthStore((s) => s.currentUser);
 
   // Handle auto-scroll to bottom only for NEW messages, NOT for history fetches
   useEffect(() => {

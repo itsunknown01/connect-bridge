@@ -8,23 +8,18 @@ import { Button } from "../ui";
 //   DialogTitle,
 // } from "../ui/dialog";
 import { Modal } from "../ui/modal";
-import { useAppDispatch, useAppSelector } from "../../hooks";
-import { onClose } from "../../redux/slices/modalSlice";
-import { RootState } from "../../redux/store";
+import { useModalStore } from "@/src/client/stores/modal-store";
+import { useChannelStore } from "@/src/client/stores/channel-store";
 import { Hash, Users, Calendar } from "lucide-react";
 
 export default function ChannelInfoModal() {
-  const dispatch = useAppDispatch();
-  const { currentChannel } = useAppSelector(
-    (state: RootState) => state.channelReducer,
-  );
-  const { isOpen, type } = useAppSelector(
-    (state: RootState) => state.modalReducer,
-  );
+  const { onClose } = useModalStore();
+  const { currentChannel } = useChannelStore();
+  const { isOpen, type } = useModalStore();
 
   const isModalOpen = isOpen && type === "channelInfo";
 
-  const handleClose = () => dispatch(onClose());
+  const handleClose = () => onClose();
 
   if (!currentChannel) return null;
 

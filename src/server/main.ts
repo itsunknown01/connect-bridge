@@ -15,13 +15,13 @@ import {
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
-  standardHeaders: "draft-7", // set `RateLimit` and `RateLimit-Policy` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
-  message: "Too many requests from this IP, please try again after 15 minutes",
-});
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+//   standardHeaders: "draft-7", // set `RateLimit` and `RateLimit-Policy` headers
+//   legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+//   message: "Too many requests from this IP, please try again after 15 minutes",
+// });
 
 app.use(
   helmet({
@@ -29,7 +29,7 @@ app.use(
       process.env.NODE_ENV === "production" ? undefined : false,
   }),
 );
-app.use(limiter);
+// app.use(limiter);
 app.use(bodyParser.json());
 app.use(cookieParser());
 

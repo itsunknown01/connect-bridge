@@ -4,10 +4,9 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
-import { useAppDispatch, useAppSelector } from "../../hooks";
-import { inviteMemberAsync } from "../../redux/slices/channelSlice";
-import { onClose } from "../../redux/slices/modalSlice";
-import { RootState } from "../../redux/store";
+import { useModalStore } from "@/src/client/stores/modal-store";
+import { useChannelStore } from "@/src/client/stores/channel-store";
+import { useInviteMember } from "@/src/client/hooks/api/use-channel-queries";
 import {
   Button,
   Form,
@@ -26,13 +25,10 @@ const InviteSchema = z.object({
 });
 
 export default function InviteMembersModal() {
-  const dispatch = useAppDispatch();
-  const { currentChannel, loading } = useAppSelector(
-    (state: RootState) => state.channelReducer,
-  );
-  const { isOpen, type } = useAppSelector(
-    (state: RootState) => state.modalReducer,
-  );
+  const { onClose } = useModalStore();
+  const { currentChannel } = useChannelStore();
+  const { isOpen, type } = useModalStore();
+  const inviteMember = useInviteMember();
   const [copied, setCopied] = useState(false);
   const isModalOpen = isOpen && type === "inviteMembers";
 
@@ -62,23 +58,21 @@ export default function InviteMembersModal() {
   const handleInvite = async (values: z.infer<typeof InviteSchema>) => {
     if (!currentChannel) return;
 
-    const result = await dispatch(
-      inviteMemberAsync({
+    try {
+      await inviteMember.mutateAsync({
         channelId: String(currentChannel.id),
         email: values.email,
-      }),
-    );
-
-    if (inviteMemberAsync.fulfilled.match(result)) {
+      });
       form.reset();
-      // Optionally close modal or keep open for more invites
+    } catch {
+      // Error handled by mutation
     }
   };
 
   const handleClose = () => {
     setCopied(false);
     form.reset();
-    dispatch(onClose());
+    onClose();
   };
 
   if (!currentChannel) return null;
@@ -113,16 +107,16 @@ export default function InviteMembersModal() {
                         <Input
                           placeholder="colleague@example.com"
                           className="pl-9 dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder:text-gray-500"
-                          disabled={loading}
+                          disabled={inviteMember.isPending}
                           {...field}
                         />
                       </div>
                       <Button
                         type="submit"
-                        disabled={loading}
+                        disabled={inviteMember.isPending}
                         className="bg-[#12372A] hover:bg-[#12372A]/90 text-white dark:bg-[#ADBC9F] dark:text-[#12372A] dark:hover:bg-[#ADBC9F]/90 transition-colors"
                       >
-                        {loading ? "Sending..." : "Invite"}
+                        {inviteMember.isPending ? "Sending..." : "Invite"}
                       </Button>
                     </div>
                   </FormControl>

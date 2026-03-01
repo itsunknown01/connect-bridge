@@ -1,40 +1,50 @@
-import { useAppDispatch, useAppSelector } from "@/src/client/hooks";
-import {
-  joinChannelAsync
-} from "@/src/client/redux/slices/channelSlice";
-import {
-  clearMessages,
-  fetchChannelMessagesAsync,
-} from "@/src/client/redux/slices/messageSlice";
-import { RootState } from "@/src/client/redux/store";
 import { useEffect, useRef } from "react";
+import { useMessageStore } from "@/src/client/stores/message-store";
+import { socketManager } from "@/src/client/lib/socket-manager";
+import { axiosPrivate } from "@/src/client/helpers/api";
 
+/**
+ * Hook that manages channel connection:
+ * - Joins the channel via socket
+ * - Fetches initial messages if they haven't been loaded for this channel
+ */
 export default function useChannelConnection(channelId: string | null) {
-  const dispatch = useAppDispatch();
-  const joinChannelRef = useRef<string | null>(null);
-  const { channels } = useAppSelector((state: RootState) => state.channelReducer);
+  const prevChannelIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!channelId) return;
+    if (!channelId || channelId === prevChannelIdRef.current) return;
+    prevChannelIdRef.current = channelId;
 
-    if (joinChannelRef.current === channelId) return;
+    const {
+      loadedChannelId,
+      setLoading,
+      setMessages,
+      setCursor,
+      clearMessages,
+      setError,
+    } = useMessageStore.getState();
 
-    joinChannelRef.current = channelId;
+    // Join the channel via socket
+    socketManager.joinChannel(channelId);
 
-    const connectChannel = async () => {
-      dispatch(clearMessages());
-      await dispatch(joinChannelAsync(channelId));
-      // Only fetch messages if the channel has existing messages to prevent shuttering
-      const channel = channels.find((ch) => String(ch.id) === channelId);
-      if (channel && (channel.messageCount ?? 0) > 0) {
-        dispatch(
-          fetchChannelMessagesAsync({
-            channelId,
-          })
-        );
+    // Skip if messages are already loaded for this channel
+    if (loadedChannelId === channelId) return;
+
+    // Fetch initial messages
+    const fetchMessages = async () => {
+      setLoading(true);
+      clearMessages();
+      try {
+        const res = await axiosPrivate.get(`/channels/${channelId}/messages`, {
+          params: { limit: 50 },
+        });
+        setMessages(res.data.messages, channelId);
+        setCursor(res.data.nextCursor);
+      } catch (err: any) {
+        setError(err.response?.data?.message || "Failed to fetch messages");
       }
     };
 
-    connectChannel();
-  }, [channelId, channels]);
+    fetchMessages();
+  }, [channelId]);
 }

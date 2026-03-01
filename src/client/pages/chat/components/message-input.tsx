@@ -4,8 +4,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/src/client/components/ui/popover";
-import { useAppDispatch } from "@/src/client/hooks";
-import { sendMessage } from "@/src/client/redux/slices/messageSlice";
+import { socketManager } from "@/src/client/lib/socket-manager";
 import { Send, Smile } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
@@ -31,7 +30,6 @@ export default function MessageInput({
 }) {
   const [content, setContent] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const dispatch = useAppDispatch();
   const canSend = Boolean(channelId) && content.trim().length > 0;
 
   // Focus input when channel changes
@@ -43,7 +41,7 @@ export default function MessageInput({
 
   const handleSend = () => {
     if (!canSend || !channelId) return;
-    dispatch(sendMessage({ channelId, content: content.trim() }));
+    socketManager.emit("send-message", { channelId, content: content.trim() });
     setContent("");
     inputRef.current?.focus();
   };

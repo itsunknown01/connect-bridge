@@ -6,7 +6,7 @@
  */
 
 import { Sun, Moon, Monitor } from "lucide-react";
-import { useTheme, Theme } from "@/src/client/contexts/ThemeContext";
+import { useTheme, Theme } from "@/src/client/hooks/contexts/ThemeContext";
 import { cn } from "@/src/client/lib/utils";
 
 interface ThemeToggleProps {

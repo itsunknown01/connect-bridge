@@ -19,6 +19,7 @@ interface MemberItemProps {
   isCurrentUser: boolean;
   canKick: boolean;
   onKick?: (userId: string | number) => void;
+  isOwner: boolean;
 }
 
 function MemberAvatar({
@@ -60,10 +61,12 @@ function MemberInfo({
   member,
   isCurrentUser,
   isChannelOnline,
+  isOwner,
 }: {
   member: Member;
   isCurrentUser: boolean;
   isChannelOnline: boolean;
+  isOwner: boolean;
 }) {
   return (
     <div className="flex-1 min-w-0 text-left">
@@ -74,6 +77,11 @@ function MemberInfo({
         {isCurrentUser && (
           <span className="text-[10px] bg-[#ADBC9F]/20 text-[#12372A] dark:text-white px-1.5 py-0.5 rounded font-medium">
             You
+          </span>
+        )}
+        {isOwner && (
+          <span className="text-[10px] bg-[#ADBC9F]/20 text-[#12372A] dark:text-white px-1.5 py-0.5 rounded font-medium">
+            Owner
           </span>
         )}
         {isChannelOnline && !isCurrentUser && (
@@ -98,6 +106,7 @@ export default function MemberItem({
   isCurrentUser,
   canKick,
   onKick,
+  isOwner,
 }: MemberItemProps) {
   const [isRemoving, setIsRemoving] = useState(false);
 
@@ -123,9 +132,10 @@ export default function MemberItem({
         member={member}
         isCurrentUser={isCurrentUser}
         isChannelOnline={isChannelOnline}
+        isOwner={isOwner}
       />
 
-      {canKick && !isCurrentUser && (
+      {canKick && !isCurrentUser && !isOwner && (
         <Button
           size="icon"
           variant="ghost"

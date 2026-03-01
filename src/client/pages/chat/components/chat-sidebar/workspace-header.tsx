@@ -5,7 +5,7 @@ import {
 } from "@/src/client/components/ui/sidebar";
 import { Switch } from "@/src/client/components/ui/switch";
 import { ChevronsUpDown, Sun, Moon } from "lucide-react";
-import { useTheme } from "@/src/client/contexts/ThemeContext";
+import { useTheme } from "@/src/client/hooks/contexts/ThemeContext";
 
 function ThemeToggle() {
   const { resolvedTheme, toggleTheme } = useTheme();

@@ -1,7 +1,5 @@
 import axios from "axios";
-import { logoutUserAsync, refreshTokenAsync } from "../redux/slices/authSlice";
-
-import { AppDispatch, RootState } from "../redux/store";
+import { useAuthStore } from "../stores/auth-store";
 
 const BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 
@@ -11,17 +9,6 @@ export default axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-interface StoreInstance {
-  getState: () => RootState;
-  dispatch: AppDispatch;
-}
-
-let storeInstance: StoreInstance | null = null;
-
-export const setStore = (store: StoreInstance) => {
-  storeInstance = store;
-};
-
 const axiosPrivate = axios.create({
   baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
@@ -30,7 +17,7 @@ const axiosPrivate = axios.create({
 
 axiosPrivate.interceptors.request.use(
   (config) => {
-    const token = storeInstance?.getState().authReducer.accessToken;
+    const token = useAuthStore.getState().accessToken;
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }
@@ -43,19 +30,26 @@ axiosPrivate.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response.status === 403 && !originalRequest.sent) {
+    if (error.response?.status === 403 && !originalRequest.sent) {
       originalRequest.sent = true;
       try {
-        const response = await storeInstance.dispatch(refreshTokenAsync());
+        // Directly call the refresh endpoint instead of dispatching Redux thunk
+        const refreshAxios = axios.create({
+          baseURL: BASE_URL,
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        });
+        const response = await refreshAxios.get("/refresh");
+        const { user, accessToken } = response.data;
 
-        if (response.meta.requestStatus === "fulfilled") {
-          originalRequest.headers["Authorization"] = `Bearer ${
-            storeInstance.getState().authReducer.accessToken
-          }`;
-          return axiosPrivate(originalRequest);
-        }
-        storeInstance.dispatch(logoutUserAsync());
+        useAuthStore.getState().setAuth({ user, accessToken });
+
+        originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
+        return axiosPrivate(originalRequest);
       } catch (err) {
+        // Refresh failed, clear auth
+        useAuthStore.getState().clearAuth();
+        localStorage.removeItem("authenticated");
         return Promise.reject(err);
       }
     }

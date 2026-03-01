@@ -26,6 +26,7 @@ export const fetchChannelKnowledge = async (req: IRequest, res: Response) => {
       params: { id: channelId },
       user,
     } = req;
+    console.log(channelId);
 
     if (!user || !user.email) {
       return res.status(401).json({ message: "User not authenticated" });
@@ -68,7 +69,12 @@ export const fetchChannelKnowledge = async (req: IRequest, res: Response) => {
       })
       .from(knowledgeArtifacts)
       .innerJoin(users, eq(users.id, knowledgeArtifacts.authorId))
-      .where(eq(users.id, knowledgeArtifacts.authorId))
+      .where(
+        and(
+          eq(users.id, knowledgeArtifacts.authorId),
+          eq(knowledgeArtifacts.channelId, Number(channelId)),
+        ),
+      )
       .orderBy(asc(knowledgeArtifacts.createdAt));
 
     return sendResponse(res, 200, { items, channelId });

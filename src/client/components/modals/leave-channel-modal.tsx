@@ -7,35 +7,32 @@ import { Button } from "../ui";
 //   DialogFooter,
 // } from "../ui/dialog";
 import { Modal } from "../ui/modal";
-import { useAppDispatch, useAppSelector } from "../../hooks";
-import { onClose } from "../../redux/slices/modalSlice";
-import { RootState } from "../../redux/store";
+import { useModalStore } from "@/src/client/stores/modal-store";
+import { useChannelStore } from "@/src/client/stores/channel-store";
+import { useLeaveChannel } from "@/src/client/hooks/api/use-channel-queries";
 import { AlertTriangle } from "lucide-react";
-import { leaveChannelAsync } from "../../redux/slices/channelSlice";
 import { useNavigate } from "react-router-dom";
 
 export default function LeaveChannelModal() {
-  const dispatch = useAppDispatch();
-  const { currentChannel, loading, channels } = useAppSelector(
-    (state: RootState) => state.channelReducer,
-  );
-  const { isOpen, type } = useAppSelector(
-    (state: RootState) => state.modalReducer,
-  );
+  const { onClose } = useModalStore();
+  const { currentChannel } = useChannelStore();
+  const { isOpen, type } = useModalStore();
+  const leaveChannel = useLeaveChannel();
   const navigate = useNavigate();
 
   const isModalOpen = isOpen && type === "leaveChannel";
 
-  const handleClose = () => dispatch(onClose());
+  const handleClose = () => onClose();
 
   const handleLeave = async () => {
     if (!currentChannel) return;
 
-    const result = await dispatch(leaveChannelAsync(String(currentChannel.id)));
-
-    if (leaveChannelAsync.fulfilled.match(result)) {
+    try {
+      await leaveChannel.mutateAsync(String(currentChannel.id));
       handleClose();
       navigate("/chats");
+    } catch {
+      // Error handled by mutation
     }
   };
 
@@ -67,16 +64,20 @@ export default function LeaveChannelModal() {
       </div>
 
       <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={handleClose} disabled={loading}>
+        <Button
+          variant="outline"
+          onClick={handleClose}
+          disabled={leaveChannel.isPending}
+        >
           Cancel
         </Button>
         <Button
           variant="destructive"
           onClick={handleLeave}
-          disabled={loading}
+          disabled={leaveChannel.isPending}
           className="bg-red-600 hover:bg-red-700"
         >
-          {loading ? "Leaving..." : "Leave Channel"}
+          {leaveChannel.isPending ? "Leaving..." : "Leave Channel"}
         </Button>
       </div>
     </Modal>

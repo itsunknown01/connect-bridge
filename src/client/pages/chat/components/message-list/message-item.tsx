@@ -18,13 +18,12 @@ import {
   X,
   Check,
 } from "lucide-react";
-import { useAppDispatch } from "@/src/client/hooks";
-import { onOpen } from "@/src/client/redux/slices/modalSlice";
+import { useModalStore } from "@/src/client/stores/modal-store";
 import { useState, useRef, useEffect } from "react";
 import {
-  updateMessageAsync,
-  deleteMessageAsync,
-} from "@/src/client/redux/slices/messageSlice";
+  useUpdateMessage,
+  useDeleteMessage,
+} from "@/src/client/hooks/api/use-message-queries";
 import DOMPurify from "dompurify";
 
 interface MessageItemProps {
@@ -34,6 +33,8 @@ interface MessageItemProps {
   onToggleKnowledge?: (messageId: string | number) => void;
   channelId: string | null;
 }
+
+/* ─── Sub-components (SRP) ─── */
 
 function MessageAvatar({ name }: { name: string }) {
   return (
@@ -76,6 +77,151 @@ function MessageHeader({
   );
 }
 
+function MessageEditForm({
+  content,
+  onSave,
+  onCancel,
+}: {
+  content: string;
+  onSave: (newContent: string) => void;
+  onCancel: () => void;
+}) {
+  const [editContent, setEditContent] = useState(content);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(
+        textareaRef.current.value.length,
+        textareaRef.current.value.length,
+      );
+    }
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      onSave(editContent);
+    } else if (e.key === "Escape") {
+      onCancel();
+    }
+  };
+
+  return (
+    <div className="mt-1 space-y-2">
+      <textarea
+        ref={textareaRef}
+        value={editContent}
+        onChange={(e) => setEditContent(e.target.value)}
+        onKeyDown={handleKeyDown}
+        className="w-full bg-white dark:bg-[#12372A]/50 border border-[#ADBC9F]/30 dark:border-[#ADBC9F]/30 rounded-md p-2 text-sm text-[#12372A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ADBC9F]/50 resize-none min-h-[60px]"
+      />
+      <div className="flex justify-end gap-2">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onCancel}
+          className="h-7 text-xs px-2 hover:bg-gray-100"
+        >
+          <X className="h-3 w-3 mr-1" />
+          Cancel
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => onSave(editContent)}
+          className="h-7 text-xs px-2 bg-[#12372A] hover:bg-[#12372A]/90 text-white"
+        >
+          <Check className="h-3 w-3 mr-1" />
+          Save Changes
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+interface MessageActionsProps {
+  isCurrentUser: boolean | null;
+  isInKnowledge?: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+  onToggleKnowledge: () => void;
+  onCreateOutcome: () => void;
+}
+
+function MessageActions({
+  isCurrentUser,
+  isInKnowledge,
+  onEdit,
+  onDelete,
+  onToggleKnowledge,
+  onCreateOutcome,
+}: MessageActionsProps) {
+  return (
+    <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 text-gray-400 hover:text-[#12372A] hover:bg-[#ADBC9F]/10 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-[#ADBC9F]"
+            aria-label="Message actions"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          className="w-48 dark:bg-[#12372A] dark:border-[#ADBC9F]/20 dark:text-white"
+        >
+          {isCurrentUser && (
+            <>
+              <DropdownMenuItem onClick={onEdit} className="cursor-pointer">
+                <Pencil className="h-4 w-4 mr-2 text-gray-500" />
+                <span>Edit Message</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={onDelete}
+                className="cursor-pointer text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                <span>Delete Message</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          <DropdownMenuItem
+            onClick={onToggleKnowledge}
+            className="cursor-pointer"
+          >
+            {isInKnowledge ? (
+              <>
+                <StarOff className="h-4 w-4 mr-2 text-amber-500" />
+                <span>Remove from Knowledge</span>
+              </>
+            ) : (
+              <>
+                <Star className="h-4 w-4 mr-2 text-amber-500" />
+                <span>Save to Knowledge</span>
+              </>
+            )}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={onCreateOutcome}
+            className="cursor-pointer"
+          >
+            <ClipboardList className="h-4 w-4 mr-2 text-blue-500" />
+            <span>Mark as Outcome</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
+/* ─── Main Component ─── */
+
 export default function MessageItem({
   message,
   isCurrentUser,
@@ -83,66 +229,30 @@ export default function MessageItem({
   onToggleKnowledge,
   channelId,
 }: MessageItemProps) {
-  const dispatch = useAppDispatch();
+  const { onOpen } = useModalStore();
+  const updateMessage = useUpdateMessage();
+  const deleteMessage = useDeleteMessage();
   const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState(message.content);
   const [isDeleting, setIsDeleting] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => {
-    if (isEditing && textareaRef.current) {
-      textareaRef.current.focus();
-      textareaRef.current.setSelectionRange(
-        textareaRef.current.value.length,
-        textareaRef.current.value.length,
-      );
-    }
-  }, [isEditing]);
-
-  const handleToggleKnowledge = () => {
-    onToggleKnowledge?.(message.id);
-  };
-
-  const handleCreateOutcome = () => {
-    dispatch(onOpen({ type: "createOutcome", data: { message } }));
-  };
-
-  const handleUpdate = async () => {
-    if (!channelId || !editContent.trim()) return;
-    if (editContent === message.content) {
+  const handleSave = async (newContent: string) => {
+    if (!channelId || !newContent.trim()) return;
+    if (newContent === message.content) {
       setIsEditing(false);
       return;
     }
-
-    await dispatch(
-      updateMessageAsync({
-        channelId,
-        messageId: message.id,
-        content: editContent,
-      }),
-    );
+    await updateMessage.mutateAsync({
+      channelId,
+      messageId: message.id,
+      content: newContent,
+    });
     setIsEditing(false);
   };
 
   const handleDelete = async () => {
     if (!channelId) return;
     setIsDeleting(true);
-    await dispatch(
-      deleteMessageAsync({
-        channelId,
-        messageId: message.id,
-      }),
-    );
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleUpdate();
-    } else if (e.key === "Escape") {
-      setIsEditing(false);
-      setEditContent(message.content);
-    }
+    await deleteMessage.mutateAsync({ channelId, messageId: message.id });
   };
 
   const sanitizedContent = DOMPurify.sanitize(message.content);
@@ -163,34 +273,11 @@ export default function MessageItem({
           />
 
           {isEditing ? (
-            <div className="mt-1 space-y-2">
-              <textarea
-                ref={textareaRef}
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="w-full bg-white dark:bg-[#12372A]/50 border border-[#ADBC9F]/30 dark:border-[#ADBC9F]/30 rounded-md p-2 text-sm text-[#12372A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ADBC9F]/50 resize-none min-h-[60px]"
-              />
-              <div className="flex justify-end gap-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setIsEditing(false)}
-                  className="h-7 text-xs px-2 hover:bg-gray-100"
-                >
-                  <X className="h-3 w-3 mr-1" />
-                  Cancel
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleUpdate}
-                  className="h-7 text-xs px-2 bg-[#12372A] hover:bg-[#12372A]/90 text-white"
-                >
-                  <Check className="h-3 w-3 mr-1" />
-                  Save Changes
-                </Button>
-              </div>
-            </div>
+            <MessageEditForm
+              content={message.content}
+              onSave={handleSave}
+              onCancel={() => setIsEditing(false)}
+            />
           ) : (
             <p
               className="text-sm text-gray-700 dark:text-white/90 leading-relaxed break-words"
@@ -200,68 +287,14 @@ export default function MessageItem({
         </div>
 
         {!isEditing && (
-          <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-gray-400 hover:text-[#12372A] hover:bg-[#ADBC9F]/10 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-[#ADBC9F]"
-                  aria-label="Message actions"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-48 dark:bg-[#12372A] dark:border-[#ADBC9F]/20 dark:text-white"
-              >
-                {isCurrentUser && (
-                  <>
-                    <DropdownMenuItem
-                      onClick={() => setIsEditing(true)}
-                      className="cursor-pointer"
-                    >
-                      <Pencil className="h-4 w-4 mr-2 text-gray-500" />
-                      <span>Edit Message</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={handleDelete}
-                      className="cursor-pointer text-red-600 focus:text-red-600"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      <span>Delete Message</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                <DropdownMenuItem
-                  onClick={handleToggleKnowledge}
-                  className="cursor-pointer"
-                >
-                  {isInKnowledge ? (
-                    <>
-                      <StarOff className="h-4 w-4 mr-2 text-amber-500" />
-                      <span>Remove from Knowledge</span>
-                    </>
-                  ) : (
-                    <>
-                      <Star className="h-4 w-4 mr-2 text-amber-500" />
-                      <span>Save to Knowledge</span>
-                    </>
-                  )}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleCreateOutcome}
-                  className="cursor-pointer"
-                >
-                  <ClipboardList className="h-4 w-4 mr-2 text-blue-500" />
-                  <span>Mark as Outcome</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <MessageActions
+            isCurrentUser={isCurrentUser}
+            isInKnowledge={isInKnowledge}
+            onEdit={() => setIsEditing(true)}
+            onDelete={handleDelete}
+            onToggleKnowledge={() => onToggleKnowledge?.(message.id)}
+            onCreateOutcome={() => onOpen("createOutcome", { message })}
+          />
         )}
       </div>
 

@@ -18,23 +18,19 @@ import {
 //   DialogTitle,
 // } from "../ui/dialog";
 import { Modal } from "../ui/modal";
-import { useAppDispatch, useAppSelector } from "../../hooks";
-import { onClose } from "../../redux/slices/modalSlice";
-import { updateChannel } from "../../redux/slices/channelSlice";
-import { RootState } from "../../redux/store";
+import { useModalStore } from "@/src/client/stores/modal-store";
+import { useChannelStore } from "@/src/client/stores/channel-store";
+import { useUpdateChannel } from "@/src/client/hooks/api/use-channel-queries";
 import { useEffect } from "react";
 import { ChannelsSchema } from "@/src/schemas";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function ChannelSettingsModal() {
-  const dispatch = useAppDispatch();
-  const { loading, currentChannel } = useAppSelector(
-    (state: RootState) => state.channelReducer,
-  );
-  const { isOpen, type } = useAppSelector(
-    (state: RootState) => state.modalReducer,
-  );
+  const { onClose } = useModalStore();
+  const updateChannel = useUpdateChannel();
+  const { currentChannel } = useChannelStore();
+  const { isOpen, type } = useModalStore();
 
   const isChannelSettingsOpen = isOpen && type === "channelSettings";
 
@@ -59,17 +55,20 @@ export default function ChannelSettingsModal() {
   ) => {
     if (!currentChannel) return;
 
-    const result = await dispatch(
-      updateChannel({ data: values, channelId: String(currentChannel.id) }),
-    );
-    if (updateChannel.fulfilled.match(result)) {
-      dispatch(onClose());
+    try {
+      await updateChannel.mutateAsync({
+        data: values,
+        channelId: String(currentChannel.id),
+      });
+      onClose();
+    } catch {
+      // Error handled by mutation
     }
   };
 
   const handleClose = () => {
     form.reset();
-    dispatch(onClose());
+    onClose();
   };
 
   return (
@@ -95,7 +94,7 @@ export default function ChannelSettingsModal() {
                   <Input
                     placeholder="e.g., project-alpha"
                     type="text"
-                    disabled={loading}
+                    disabled={updateChannel.isPending}
                     className="dark:bg-white/5 dark:border-white/10 dark:text-white"
                     {...field}
                   />
@@ -111,9 +110,9 @@ export default function ChannelSettingsModal() {
             <Button
               type="submit"
               className="bg-[#12372A] hover:bg-[#12372A]/90 text-white dark:bg-[#ADBC9F] dark:text-[#12372A] dark:hover:bg-[#ADBC9F]/90 transition-colors"
-              disabled={loading}
+              disabled={updateChannel.isPending}
             >
-              {loading ? "Saving..." : "Save Changes"}
+              {updateChannel.isPending ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>

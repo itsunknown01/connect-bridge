@@ -20,17 +20,17 @@ import {
 import { Modal } from "../ui/modal";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAppDispatch, useAppSelector } from "../../hooks";
-import { onClose } from "../../redux/slices/modalSlice";
+import { useModalStore } from "@/src/client/stores/modal-store";
+import { useAuthStore } from "@/src/client/stores/auth-store";
 import { useEffect } from "react";
-import { updateUserProfileAsync } from "../../redux/slices/authSlice";
+import { useUpdateProfile } from "@/src/client/hooks/api/use-auth-queries";
 import { ProfileSchema } from "@/src/schemas";
 
 export default function ProfileSettingsModal() {
-  const { isOpen, type } = useAppSelector((state) => state.modalReducer);
-  const { currentUser, loading } = useAppSelector((state) => state.authReducer);
+  const { isOpen, type, onClose } = useModalStore();
+  const { currentUser, loading } = useAuthStore();
+  const updateProfile = useUpdateProfile();
 
-  const dispatch = useAppDispatch();
   const form = useForm({
     resolver: zodResolver(ProfileSchema),
     defaultValues: {
@@ -41,7 +41,6 @@ export default function ProfileSettingsModal() {
 
   const isModalOpen = isOpen && type === "profileSettings";
 
-  // Reset form with current user data when modal opens
   useEffect(() => {
     if (isModalOpen && currentUser) {
       form.reset({
@@ -51,13 +50,14 @@ export default function ProfileSettingsModal() {
     }
   }, [isModalOpen, currentUser, form]);
 
-  const handleClose = () => dispatch(onClose());
+  const handleClose = () => onClose();
 
   const onSubmit = async (values: z.infer<typeof ProfileSchema>) => {
-    const result = await dispatch(updateUserProfileAsync(values));
-
-    if (updateUserProfileAsync.fulfilled.match(result)) {
-      dispatch(onClose());
+    try {
+      await updateProfile.mutateAsync(values);
+      onClose();
+    } catch {
+      // Error handled by mutation
     }
   };
 

@@ -2,8 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Check, X } from "lucide-react";
 import { Button } from "@/src/client/components/ui";
 import { Channel } from "@/src/client/lib/types";
-import { useAppDispatch } from "@/src/client/hooks";
-import { updateChannel } from "@/src/client/redux/slices/channelSlice";
+import { useUpdateChannel } from "@/src/client/hooks/api/use-channel-queries";
 
 interface HeaderRenameInputProps {
   currentChannel: Channel;
@@ -17,7 +16,7 @@ export default function HeaderRenameInput({
   const [editName, setEditName] = useState(currentChannel.name);
   const [isSaving, setIsSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const dispatch = useAppDispatch();
+  const updateChannel = useUpdateChannel();
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -31,12 +30,10 @@ export default function HeaderRenameInput({
 
     setIsSaving(true);
     try {
-      await dispatch(
-        updateChannel({
-          channelId: String(currentChannel.id),
-          data: { name: editName },
-        }),
-      ).unwrap();
+      await updateChannel.mutateAsync({
+        channelId: String(currentChannel.id),
+        data: { name: editName },
+      });
       onCancel();
     } catch (error) {
       console.error("Failed to rename channel:", error);
