@@ -30,6 +30,7 @@ app.use(
   }),
 );
 // app.use(limiter);
+app.set("trust proxy", 1);
 app.use(bodyParser.json());
 app.use(cookieParser());
 
